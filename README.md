@@ -1,2 +1,0 @@
-# basmat
-Bashicu matrix calculator
