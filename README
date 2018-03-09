@@ -1,3 +1,26 @@
-Bashicu Matric Calculator
+basmat - Bashicu Matrix Calculator
 
+This program calculates Bashicu Matrix. See http://gyafun.jp/ln/basmat.cgi for detail.
+
+(1) Installation
+
+Follow the normal UNIX installation procedure, such as:
+
+     ./configure && make
+     su
+     make install
+
+(2) Uage
+
+Usage is shown by running
+
+     basmat -h
+     
+(3) Web interface
+
+Web interface is available at
 http://gyafun.jp/ln/basmat.cgi
+
+(4) Author
+
+Fish http://googology.wikia.com/wiki/User:Kyodaisuu
