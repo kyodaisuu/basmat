@@ -7,12 +7,6 @@ REM Simulates the calculation process of (0,0,0)(1,1,1)(1,1,0)[2]
 REM n = constant
 REM Maxmum length of sequence is 30
 
-REM This program does not work as expected, as
-REM (0,0,0)(1,1,1)(1,1,0)[2]
-REM (0,0,0)(1,1,1)[2]
-REM (0,0,0)[2]
-REM I am not sure if it is translation error.
-
 REM ======= Set initial variable =======
 A$="(0,0,0)(1,1,1)(1,1,0)[2]"
 Z=30 REM maximum length of sequence
@@ -32,6 +26,7 @@ for M=M to len(A$)
   if B$>="0" and B$<="9"  A=A*10+val(B$)
 next M
 if A=0 A=2
+E=C
 F=J-1
 
 REM ======= Start calculation =======
@@ -69,10 +64,10 @@ REM ======= Start calculation =======
      next
     next
     F=F+1
+    if F>Z end
    next
   next
   for N=0 to E
    C(N)=0
   next
-  if F>Z end
  next
