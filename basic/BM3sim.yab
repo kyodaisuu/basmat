@@ -17,7 +17,7 @@ I=0: J=0:B(0,0)=0
 for M=1 to len(A$)
   B$=mid$(A$,M,1)
   if B$="," I=I+1: B(J,I)=0
-  if B$=")" J=J+1: C=I: I=0: B(J,J)=0
+  if B$=")" J=J+1: E=I: I=0: B(J,J)=0
   if B$="[" break
   if B$>="0" and B$<="9" B(J,I)=B(J,I)*10+val(B$)
 next M
@@ -27,7 +27,6 @@ for M=M to len(A$)
   if B$>="0" and B$<="9"  A=A*10+val(B$)
 next M
 if A=0 A=2
-E=C
 F=J-1
 
 REM ======= Start calculation =======
@@ -36,10 +35,10 @@ REM ======= Start calculation =======
 
    for Y=0 to F
      print "(";
-     for J=0 to C-1
+     for J=0 to E-1
        print B(Y,J),",";
      next J
-     print B(Y,C),")";
+     print B(Y,E),")";
    next Y
    print "[",A,"]"
 
