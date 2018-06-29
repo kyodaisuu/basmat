@@ -56,6 +56,8 @@ See ChangeLog
 Web interface is available at
 http://gyafun.jp/ln/basmat.cgi
 
+The online version of basmat has some limit on the length of initial variable, the maximum length <= 10000, and maximum step of calculation = 1000.
+
 ## Authors
 
 * [Bashicu](http://ja.googology.wikia.com/wiki/User:BashicuHyudora) invented versions 1,2,3 and wrote BASIC program
