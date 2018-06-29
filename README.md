@@ -52,6 +52,8 @@ See ChangeLog
 Web interface is available at
 http://gyafun.jp/ln/basmat.cgi
 
-## Author
+## Authors
 
-Fish http://googology.wikia.com/wiki/User:Kyodaisuu
+* [Bashicu](http://ja.googology.wikia.com/wiki/User:BashicuHyudora) invented versions 1,2,3 and wrote BASIC program
+* [Fish](http://googology.wikia.com/wiki/User:Kyodaisuu) wrote this C program using Bashicu's algorithm
+* [koteitan](https://twitter.com/koteitan) invented and wrote C program of versions 2.1, 2.2
