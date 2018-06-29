@@ -6,19 +6,19 @@ This program calculates Bashicu Matrix. See http://gyafun.jp/ln/basmat.cgi for d
 
 Follow the normal UNIX installation procedure, such as:
 
- ./configure && make
- su
- make install
+    ./configure && make
+    su
+    make install
 
 Basmat runs on Bash on ubuntu on Windows. Just run the following beforehand.
 
- sudo apt-get install gcc make
+    sudo apt-get install gcc make
 
 ## Usage
 
 Usage is shown by running
 
- basmat -h
+    basmat -h
 
 ## Web interface
 
