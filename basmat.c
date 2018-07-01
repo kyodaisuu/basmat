@@ -43,7 +43,7 @@ int areAllEq(int *P, int nr){
 }
 /* argmin returns the index whose element is minimum of P in nr rows */
 int argmax(int *P, int nr){
-  int i, m=nr;
+  int i, m=nr-1;
   for(i=0;i<nr;i++) if(P[i]>P[m]) m=i;
   return m;
 }
