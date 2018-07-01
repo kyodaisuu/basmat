@@ -28,7 +28,8 @@ void printA(int *A, int nr){
   for(r=0;r<nr-1;r++)printf("%d,",A[r]);
   if(nr>0)printf("%d)",A[nr-1]);
 }
-/* returns index of the element x in P with nr rows (it returns -1 when x is not found) */
+/* returns index of the element x in P with nr rows
+   (it returns -1 when x is not found) */
 int find(int *P, int nr, int x){
   int i;
   for(i=0;i<nr;i++) if(P[i]==x) return i;
@@ -46,13 +47,17 @@ int argmax(int *P, int nr){
   for(i=0;i<nr;i++) if(P[i]>P[m]) m=i;
   return m;
 }
-/* getParent returns the column number of the parent of the child column c in row r in Bashicu matrix S consist of the nr rows (it returns -1 when parent is not found) */
+/* getParent returns the column number of the parent of the child column c
+   in row r in Bashicu matrix S consist of the nr rows
+   (it returns -1 when parent is not found) */
 int getParent(int *S, int r, int c, int nr){
   int i;
   for(i=c;i>=0;i--) if(S[r+i*nr]<S[r+c*nr]) return i;
   return -1;
 }
-/* getConcestor returns the column number of the concestor of with m rows from the child column c in Bashicu matrix S consist of the nr rows (it returns -1 when concestor is not found) */
+/* getConcestor returns the column number of the concestor of with m rows
+   from the child column c in Bashicu matrix S consist of the nr rows
+   (it returns -1 when concestor is not found) */
 int getConcestor(int *S, int m, int c, int nr){
   int r, maxr;
   int *P = malloc(sizeof(int) * nr);
