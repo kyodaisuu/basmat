@@ -1,29 +1,34 @@
 /*
 
-basmat - Bashicu Matrix Calculator version 3
+   basmat - Bashicu Matrix Calculator
+*/
+const char *version = "3.1-beta";
+/*
+   https://github.com/kyodaisuu/basmat
 
-https://github.com/kyodaisuu/basmat
-
-See REAME.md
+   See REAME.md for more information
 
 ***********************************/
 
-#include <assert.h>
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
+const char *versionBM = "2"; /* Default version of BM */
+
 void showHelp() {
+  printf("basmat - Bashicu Matrix Calculator version %s\n", version);
   printf(
-      "basmat - Bashicu Matrix Calculator version 3.0\n"
       "Usage: basmat [-v ver] [-o opt] [-s seq] [-t stp] [-dh] ini\n\n"
       "  ini  Initial variable in the form of BM[n].\n"
       "       BM sequence expression of Bashicu matrix.\n"
       "       n: natural number. n=2 if not given.\n"
       "       ex. \"(0,0)(1,1)[3]\"   (Quote to escape brackets in shell)\n"
-      "  ver  Version of Bashicu matrix system. Default = 3.\n"
+      "  ver  Version of Bashicu matrix system. Default = %s.\n",
+      versionBM);
+  printf(
       "       Available versions: 1, 2, 2.1, 2.2, 3\n"
       "  opt  Calculation option.\n"
       "       opt = 1: n is constant. (Default)\n"
@@ -38,6 +43,22 @@ void showHelp() {
       "Web interface is available at http://gyafun.jp/ln/basmat.cgi\n"
       "See also https://github.com/kyodaisuu/basmat/blob/master/README.md\n");
   return;
+}
+
+int intVersion(char *version) {
+  if (strcmp(version, "1.0") == 0 || strcmp(version, "1") == 0)
+    return 100;
+  else if (strcmp(version, "2.0") == 0 || strcmp(version, "2") == 0)
+    return 200;
+  else if (strcmp(version, "2.1") == 0)
+    return 210;
+  else if (strcmp(version, "2.2") == 0)
+    return 220;
+  else if (strcmp(version, "3.0") == 0 || strcmp(version, "3") == 0)
+    return 300;
+  else {
+    return 0;
+  }
 }
 
 /* getMatrix(bm, S, &nc, &nr, &num);
@@ -69,6 +90,34 @@ void getMatrix(char *bm, int *S, int nr, long *nc, long *num) {
     if (k >= 0 && k <= 9) S[i + j * nr] = S[i + j * nr] * 10 + k;
   }
   *nc = j;
+}
+
+/*
+   Show Sequence
+
+   S  = Sequence of BM
+   nr = numbers of rows
+   nc = numbers of columns
+   num = integer as a parameter of BM
+         if num=0, [num] is now shown
+   cr = CR at the end?
+
+*/
+
+void showSeq(int *S, int nr, long nc, long num, int cr) {
+  int i, j;
+  for (i = 0; i < nc; i++) {
+    printf("(");
+    for (j = 0; j < nr - 1; j++) printf("%d,", S[j + i * nr]);
+    printf("%d)", S[nr - 1 + i * nr]);
+  }
+  if (num > 0) {
+    printf("[%ld]", num);
+  }
+  if (cr) {
+    printf("\n");
+  }
+  return;
 }
 
 void printM(int *A, int nr, int nc) {
@@ -490,6 +539,191 @@ void testOne(char *bm, char *result, int nr, int ver, long num, int opt) {
   exit(-1);
 }
 
+/* Show standard sequence
+
+  nr = numbers of rows
+  n  = numbers of columns - 1
+
+*/
+void showStd(int nr, long n) {
+  int S[nr * (n + 1)], i, j;
+  for (i = 0; i <= n; i++) {
+    for (j = 0; j < nr; j++) {
+      S[j + i * nr] = i;
+    }
+  }
+  showSeq(S, nr, n + 1, 0, 0);
+  return;
+}
+
+/*
+   Check Standard format
+
+   S: Sequence
+   nc: numbers of columns
+   nr: numbers of rows
+   ver: version
+   detail: show detail
+
+   return 0 if Standard
+          1 if not
+****************/
+
+int chkStd(int *S, long nc, int nr, int ver, int detail) {
+  int i, j, row = 0;
+
+  /* check real numbers of row */
+  for (i = 0; i < nc; i++) {
+    if (row + 1 == nr) {
+      break;
+    }
+    for (j = row + 1; j < nr; j++) {
+      if (S[j + i * nr] > 0) {
+        row = j;
+      }
+    }
+  }
+
+  /* Find smaller column p */
+  int p = -1;
+  for (i = 0; i < nc; i++) {
+    for (j = 0; j <= row; j++) {
+      if (S[j + i * nr] > i) {
+        if (detail) {
+          showSeq(S, nr, nc, 0, 0);
+          printf(" is not standard because ");
+          if (i == 0) {
+            printf("not starting from ");
+            showStd(nr, 0);
+            printf("\n");
+          } else {
+            showStd(nr, i);
+            printf(" does not decrease to the sequence.\n");
+          }
+        }
+        return 1;
+      }
+      if (S[j + i * nr] < i) {
+        p = i;
+        j = row + 1;
+        i = nc;
+      }
+    }
+  }
+  if (p < 0) {
+    if (detail) {
+      showSeq(S, nr, nc, 0, 0);
+      printf(" is standard.\n");
+    }
+    return 0;
+  }
+
+  if (detail) {
+    printf("Checking if ");
+    showSeq(S, nr, nc, 0, 0);
+    printf(" is standard.\nDecreasing sequence from ");
+    showStd(row + 2, 1);
+    printf(" follows.\n");
+  }
+
+  /* Make a sequence above S (SA) */
+  int *SA, *Delta, *C, bad, num, nn, larger, smaller;
+  long p2;
+  SA = malloc(sizeof(int) * (row + 1) * nc * 2);
+  Delta = malloc(sizeof(int) * (row + 1));
+  C = malloc(sizeof(int) * (row + 1) * nc * 2);
+  for (i = 0; i < row + 1; i++) {
+    C[i + row + 1] = 1;
+  }
+
+  for (i = 0; i <= p; i++) {
+    for (j = 0; j < row + 1; j++) {
+      SA[j + i * (row + 1)] = i;
+    }
+  }
+  if (detail) {
+    showSeq(SA, row + 1, p + 1, 0, 1);
+  }
+
+  /* Check decreasing sequence of SA */
+  while (1) {
+    bad = getBadSequence(SA, Delta, C, ver, 0, p, row + 1);
+    num = (nc + 1 - p) / bad + 1;
+    nn = p + bad * num;
+    p2 = p;
+    copyBadSequence(SA, Delta, C, ver, &p2, nn, row + 1, bad);
+    p2 = -1;
+    for (i = p; i < nc; i++) {
+      smaller = 0;
+      larger = 0;
+      for (j = 0; j < row + 1; j++) {
+        if (S[j + i * nr] > SA[j + i * (row + 1)]) {
+          larger = 1;
+        }
+        if (S[j + i * nr] < SA[j + i * (row + 1)]) {
+          smaller = 1;
+        }
+      }
+      if (larger == 1 && smaller == 0) {
+        if (detail) {
+          printf("Not standard because it is ");
+          showSeq(SA, row + 1, i + 1, 0, 0);
+          printf("...\n");
+        }
+        free(SA);
+        free(Delta);
+        free(C);
+        return 1;
+      }
+      if (larger == 1 || smaller == 1) {
+        p2 = i;
+        i = nc;
+      }
+    }
+    if (p2 == -1) {
+      if (detail) {
+        showSeq(SA, row + 1, nc, 0, 1);
+        printf("Standard.\n");
+      }
+      free(SA);
+      free(Delta);
+      free(C);
+      return 0;
+    }
+    p = p2;
+    if (detail) {
+      showSeq(SA, row + 1, p + 1, 0, 1);
+    }
+  }
+}
+
+/*
+  Test standard format
+
+*/
+
+void testStd(char *bm, int expected, int nr, int ver) {
+  int S[100], i, j, len, actual;
+  len = strlen(bm);
+  long nc = len / nr;
+  for (i = 0; i < len; i++) {
+    S[i] = bm[i] - '0';
+  }
+  actual = chkStd(S, nc, nr, ver, 0);
+  if (expected == actual) {
+    return;
+  }
+  printf("Test failed with ");
+  for (i = 0; i < len / nr; i++) {
+    printf("(");
+    for (j = 0; j < nr - 1; j++) printf("%d,", bm[j + i * nr] - '0');
+    printf("%d)", bm[nr - 1 + i * nr] - '0');
+  }
+  printf("\nver = %d\n", ver);
+  printf("Expected = %d\nActual   = %d\n", expected, actual);
+  exit(-1);
+}
+
 /*********************
 
   Run this test by
@@ -511,6 +745,7 @@ void test() {
   testOne("0122", "01212", 1, 210, 2, 4);
   testOne("0123", "012222222222", 1, 100, 3, 3);
   testOne("0011", "00102030", 2, 220, 3, 1);
+  testOne("00001100", "0000100020003000", 4, 220, 3, 1);
   testOne("001100", "0011", 2, 200, 2, 4);
   testOne("001101", "0011", 2, 200, 2, 3);
   testOne("001110", "001100110011", 2, 200, 2, 1);
@@ -570,6 +805,22 @@ void test() {
   testOne("000111222311222", "000111222311220331442531", 3, 220, 1, 1);
   testOne("000111222311222", "000111222311221332411", 3, 300, 1, 1);
 
+  /* Test standard format */
+  /* testStd(bm, expected, nr, ver) */
+  testStd("012", 0, 1, 100);
+  testStd("100100100", 1, 3, 100);
+  testStd("0011223544", 1, 2, 100);
+  testStd("001111212233", 1, 2, 100);
+  testStd("001111102233", 1, 2, 100);
+  testStd("001111102100", 0, 2, 100);
+  testStd("000111211111", 0, 3, 300);
+  testStd("000100200210311", 1, 3, 200);
+  testStd("000111110221110211", 1, 3, 200);
+  testStd("000111211110221311", 1, 3, 200);
+  testStd("000111211110221311", 0, 3, 300);
+  testStd("000111221222", 1, 3, 200);
+  testStd("000111222123", 1, 3, 200);
+
   printf("Test completed without error.\n");
   return;
 }
@@ -578,26 +829,18 @@ void test() {
 
 int main(int argc, char *argv[]) {
   /**************************** Initialization ****************************/
-  int *S, *Delta, *C, row = 0, bad, i = 0, j, m, nr, len;
-  int opt = 1, ver = 300, detail = 0, help = 0;
+  int *S, *Delta, *C, row = 0, bad, i = 0, m, nr, len;
+  int opt = 1, ver, detail = 0, help = 0;
   long n, nc, nn, num = 0, s = 20, step = 0, maxstep = 0;
   char *bm, arg;
   /* Read commandline options */
 
+  ver = intVersion((char *)versionBM);
   while ((arg = getopt(argc, argv, "v:o:s:t:dTh")) != -1) {
     switch (arg) {
       case 'v':
-        if (strcmp(optarg, "1.0") == 0 || strcmp(optarg, "1") == 0)
-          ver = 100;
-        else if (strcmp(optarg, "2.0") == 0 || strcmp(optarg, "2") == 0)
-          ver = 200;
-        else if (strcmp(optarg, "2.1") == 0)
-          ver = 210;
-        else if (strcmp(optarg, "2.2") == 0)
-          ver = 220;
-        else if (strcmp(optarg, "3.0") == 0 || strcmp(optarg, "3") == 0)
-          ver = 300;
-        else {
+        ver = intVersion(optarg);
+        if (ver == 0) {
           printf("Error: invalid version.\n");
           help = 1;
         }
@@ -692,16 +935,16 @@ int main(int argc, char *argv[]) {
     C[m + nr] = 1;
   }
 
+  /*** Check standard ***/
+  i = chkStd(S, nc, nr, ver, detail);
+  if (i && !detail) {
+    printf("Not standard. Use detail option to see why.\n");
+  }
+
   /**************************** Start calculation ****************************/
   for (; n >= 0; n--) {
     if (detail) printf("--------------------------------------------\n");
-    /* Show current sequence */
-    for (i = 0; i <= n; i++) {
-      printf("(");
-      for (j = 0; j < row; j++) printf("%d,", S[j + i * nr]);
-      printf("%d)", S[row + i * nr]);
-    }
-    printf("[%ld]\n", num);
+    showSeq(S, nr, n + 1, num, 1); /* Show current sequence */
 
     /******* Calculation in 3 steps *******/
     /* Step 1: Increment number with f(n) */
@@ -721,12 +964,14 @@ int main(int argc, char *argv[]) {
       printf("Length of sequence exceeds %ld at next step.\n", s);
       free(S);
       free(Delta);
+      free(C);
       return 0;
     }
     if (maxstep && step++ >= maxstep) {
       printf("Maximum step of calculation %ld has reached.\n", maxstep);
       free(S);
       free(Delta);
+      free(C);
       return 0;
     }
 
