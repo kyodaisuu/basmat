@@ -648,6 +648,16 @@ int chkStd(int *S, long nc, int nr, int ver, int detail) {
   /* Check decreasing sequence of SA */
   while (1) {
     bad = getBadSequence(SA, Delta, C, ver, 0, p, row + 1);
+    if (bad == 0) {
+      if (detail) {
+        printf("Not standard because it goes directly to ");
+        showSeq(SA, row + 1, p, 0, 1);
+      }
+      free(SA);
+      free(Delta);
+      free(C);
+      return 1;
+    }
     num = (nc + 1 - p) / bad + 1;
     nn = p + bad * num;
     p2 = p;
@@ -820,6 +830,7 @@ void test() {
   testStd("000111211110221311", 0, 3, 300);
   testStd("000111221222", 1, 3, 200);
   testStd("000111222123", 1, 3, 200);
+  testStd("000111222320222", 1, 3, 220);
 
   printf("Test completed without error.\n");
   return;
