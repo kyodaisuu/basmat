@@ -41,7 +41,7 @@ brew install kyodaisuu/math/basmat
 
 ## Unix system
 
-Follow the normal UNIX installation procedure, such as:
+Download the [latest release](https://github.com/kyodaisuu/basmat/releases) or get the latest code from [GitHub repository](https://github.com/kyodaisuu/basmat). Then follow the normal UNIX installation procedure, such as:
 
 ```
 ./configure && make
