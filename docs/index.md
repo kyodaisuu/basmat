@@ -1,28 +1,18 @@
 # basmat - Bashicu Matrix Calculator
 
-This program calculates Bashicu Matrix. Bashicu matrix system is a notation designed to produce large numbers. Bashicu matrix is a matrix such as ![BM](http://gyafun.jp/ln/basmat/eq1.png "BM") where all elements are nonnegative integers. The matrix can be written in the form of (a<sub>11</sub>, a<sub>21</sub>)(a<sub>12</sub>, a<sub>22</sub>)(a<sub>13</sub>, a<sub>23</sub>); sequence of transpose of each column. With an algorithm invented by Bashicu in 2014 and updated afterwards, Bashicu matrix BM works as a function from a natural number n to a natural number BM[n] (provided that the calculation ends), and written as (0,0)(1,1)(1,1)[3]. It is known that 2-row matrix, pair sequence,
+This program calculates Bashicu Matrix. Bashicu matrix system is a notation designed to produce large numbers. Bashicu matrix is a matrix such as ![BM](http://gyafun.jp/ln/basmat/eq1.png "BM") where all elements are nonnegative integers. The matrix can be written in the form of (a<sub>11</sub>, a<sub>21</sub>)(a<sub>12</sub>, a<sub>22</sub>)(a<sub>13</sub>, a<sub>23</sub>); sequence of transpose of each column. With an algorithm invented by Bashicu in 2014 and updated afterwards, Bashicu matrix BM works as a function from a natural number n to a natural number BM[n] (provided that the calculation ends), and written as (0,0)(1,1)(1,1)[3]. It is known that 2-row matrix, [pair sequence](http://googology.wikia.com/wiki/Pair_sequence_number), can be approximated with [Hardy function](http://googology.wikia.com/wiki/Hardy_hierarchy). When the function is approximated with Hardy function, the matrix itself represents the ordinal of the Hardy function, and therefore can be written as ![ordinal](http://gyafun.jp/ln/basmat/eq2.png "ordinal").
+
+Official definition of the algorithm of Bashicu matrix is in the source code of this program.
 
 ## Installation
 
-Follow the normal UNIX installation procedure, such as:
-
-    ./configure && make
-    su
-    make install
-
-Basmat runs on Bash on ubuntu on Windows. Just run the following beforehand.
-
-    sudo apt-get install gcc make
-
-When you are using homebrew on macOS, it is easy to install by
-
-    brew install kyodaisuu/math/basmat
+See [Installation](install.md).
 
 ## Usage
 
     basmat [-v ver] [-o opt] [-s seq] [-t stp] [-dh] ini
 
-* ini - Initial variable in the form of BM[n], 
+* ini - Initial variable in the form of BM[n],
     * BM sequence expression of Bashicu matrix.
     * n: natural number. n=2 if not given.
     * ex. "(0,0)(1,1)[3]"   (Quote to escape brackets in shell)
@@ -50,7 +40,7 @@ Example:
 
 ## Version History
 
-See ChangeLog
+See [ChangeLog](../Changelog).
 
 ## Web interface
 
