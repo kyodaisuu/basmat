@@ -1,6 +1,6 @@
 # basmat - Bashicu Matrix Calculator
 
-This program calculates Bashicu Matrix. See http://gyafun.jp/ln/basmat.cgi for detail.
+This program calculates Bashicu Matrix. Bashicu matrix system is a notation designed to produce large numbers. Bashicu matrix is a matrix such as ![BM](http://gyafun.jp/ln/basmat/eq1.png "BM") where all elements are nonnegative integers. The matrix can be written in the form of (a<sub>11</sub>, a<sub>21</sub>)(a<sub>12</sub>, a<sub>22</sub>)(a<sub>13</sub>, a<sub>23</sub>); sequence of transpose of each column. With an algorithm invented by Bashicu in 2014 and updated afterwards, Bashicu matrix BM works as a function from a natural number n to a natural number BM[n] (provided that the calculation ends), and written as (0,0)(1,1)(1,1)[3]. It is known that 2-row matrix, pair sequence,
 
 ## Installation
 
@@ -28,7 +28,7 @@ When you are using homebrew on macOS, it is easy to install by
     * ex. "(0,0)(1,1)[3]"   (Quote to escape brackets in shell)
 * ver - Version of Bashicu matrix system. Default = 3.
     * Available versions: 1, 2, 2.1, 2.2, 3
-    * See https://googology.wikia.com/wiki/User:Kyodaisuu/BasmatVersion for detail
+    * See [basmat version](https://googology.wikia.com/wiki/User:Kyodaisuu/BasmatVersion) for detail
 * opt - Calculation option.
     * opt = 1: n is constant. (Default)
     * opt = 2: n = n+1 for each loop.
@@ -54,8 +54,7 @@ See ChangeLog
 
 ## Web interface
 
-Web interface is available at
-http://gyafun.jp/ln/basmat.cgi
+[Web interface](http://gyafun.jp/ln/basmat.cgi) is available.
 
 The online version of basmat has some limit on the length of initial variable, the maximum length <= 10000, and maximum step of calculation = 1000.
 
