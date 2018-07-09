@@ -5,7 +5,7 @@
 Basmat runs on Windows Subsystem for Linux on Windows 10.
 
 * [Install your Linux distribution of choice](https://docs.microsoft.com/en-us/windows/wsl/install-win10) following the instruction.
-* Run the following in the bash shell.
+* Run the following in the bash shell (assuming that you chose Utuntu or Debian).
 
 ```
 sudo apt-get install gcc make
