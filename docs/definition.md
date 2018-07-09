@@ -105,7 +105,7 @@ if (i && !detail) {
 }
 ```
 
-This block checks if the BM is standard form. Standard form is a BM which is expected to arise from calculation of (0,0,...,0)(1,1,...,1). When it is not standard, there is no chance that the BM appears in the calculation of BM. It is an important property of a BM and therefore if it is not standard it is shown at the beginning to get attention.
+This block checks if the BM is standard form. Standard form is a BM which is expected to arise from calculation of (0,0,...,0)(1,1,...,1). When it is not standard, there is no chance that the BM appears in the calculation of (0,0,...,0)(1,1,...,1). It is an important property of a BM and therefore if it is not standard it is shown at the beginning to get attention.
 
 Now the initialization finished.
 
