@@ -40,7 +40,7 @@ Example:
 
 ## Version History
 
-See [ChangeLog](../Changelog).
+See [ChangeLog](https://github.com/kyodaisuu/basmat/blob/master/ChangeLog).
 
 ## Web interface
 
