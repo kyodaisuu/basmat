@@ -4,12 +4,16 @@
 */
 const char *version = "3.1-beta";
 /*
-   https://github.com/kyodaisuu/basmat
 
-   See REAME.md for more information
+   Project website
+   https://kyodaisuu.github.io/basmat/
 
-***********************************/
+   Online Calculator
+   http://gyafun.jp/ln/basmat.cgi
 
+**********************************************/
+
+#include <assert.h>
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,6 +21,12 @@ const char *version = "3.1-beta";
 #include <unistd.h>
 
 const char *versionBM = "2"; /* Default version of BM */
+
+/************************ Hep ***********************/
+
+/*
+   showHelp - show help
+*/
 
 void showHelp() {
   printf("basmat - Bashicu Matrix Calculator version %s\n", version);
@@ -41,9 +51,14 @@ void showHelp() {
       "   -T  Test for development.\n"
       "   -h  Show this help and exit.\n\n"
       "Web interface is available at http://gyafun.jp/ln/basmat.cgi\n"
-      "See also https://github.com/kyodaisuu/basmat/blob/master/README.md\n");
+      "See also https://kyodaisuu.github.io/basmat/\n");
   return;
 }
+
+/*
+  intVersion - get version as integer
+
+*/
 
 int intVersion(char *version) {
   if (strcmp(version, "1.0") == 0 || strcmp(version, "1") == 0)
@@ -60,6 +75,8 @@ int intVersion(char *version) {
     return 0;
   }
 }
+
+/*************************** Input ***********************/
 
 /* getMatrix(bm, S, &nc, &nr, &num);
    Input variables:
@@ -90,7 +107,37 @@ void getMatrix(char *bm, int *S, int nr, long *nc, long *num) {
     if (k >= 0 && k <= 9) S[i + j * nr] = S[i + j * nr] * 10 + k;
   }
   *nc = j;
+  return;
 }
+
+/*
+   get Bashicu matrix as a sequence (inverse of getMatrix)
+
+*/
+
+char *getSeq(int *S, int nr, long nc) {
+  int i, j;
+  char *seq = malloc(nr * nc * 3);
+  char *lb = "(";
+  char *rb = ")";
+  char *comma = ",";
+  char *n = malloc(4);
+  for (i = 0; i < nc; i++) {
+    strcat(seq, lb);
+    for (j = 0; j < nr; j++) {
+      sprintf(n, "%d", S[j + i * nr]);
+      strcat(seq, n);
+      if (j == nr - 1) {
+        strcat(seq, rb);
+      } else {
+        strcat(seq, comma);
+      }
+    }
+  }
+  return seq;
+}
+
+/********************** Output sequence *****************/
 
 /*
    Show Sequence
@@ -134,6 +181,26 @@ void printA(int *A, int nr) {
   for (r = 0; r < nr - 1; r++) printf("%d,", A[r]);
   if (nr > 0) printf("%d)", A[nr - 1]);
 }
+
+/* Show standard sequence
+
+  nr = numbers of rows
+  n  = numbers of columns - 1
+
+*/
+void showStd(int nr, long n) {
+  int S[nr * (n + 1)], i, j;
+  for (i = 0; i <= n; i++) {
+    for (j = 0; j < nr; j++) {
+      S[j + i * nr] = i;
+    }
+  }
+  showSeq(S, nr, n + 1, 0, 0);
+  return;
+}
+
+/************** Subroutines for calculation **********/
+
 /* returns index of the element x in P with nr rows
    (it returns -1 when x is not found) */
 int find(int *P, int nr, int x) {
@@ -149,7 +216,7 @@ int areAllEq(int *P, int nr) {
     if (P[i] != p0) return 0;
   return -1;
 }
-/* argmin returns the index whose element is minimum of P in nr rows */
+/* argmax returns the index whose element is maximum of P in nr rows */
 int argmax(int *P, int nr) {
   int i, m = nr - 1;
   for (i = 0; i < nr; i++)
@@ -170,14 +237,13 @@ int getParent(int *S, int r, int c, int nr) {
    (it returns -1 when concestor is not found) */
 int getConcestor(int *S, int m, int c, int nr) {
   int r, maxr;
-  int *P = malloc(sizeof(int) * nr);
+  int P[nr];
 
   for (r = 0; r < m; r++) P[r] = getParent(S, r, c, nr);
   while (find(P, m, -1) == -1) {
     if (areAllEq(P, m)) {
       /* same */
       r = P[0];
-      free(P);
       return r;
     } else {
       /* not same */
@@ -185,12 +251,36 @@ int getConcestor(int *S, int m, int c, int nr) {
       P[maxr] = getParent(S, maxr, P[maxr], nr);
     }
   }
-  free(P);
   return -1;
 }
 
-/* getBadSequence returns the length of the bad sequence as return variable.
-Delta and C are directly returned using pointers */
+/****************************************************
+
+              Functions for calculation
+
+*****************************************************/
+
+/***************
+
+   getBadSequence - determine the 'bad part'
+
+   This is the first core algorithm of Bashicu Matrix.
+
+   Input variables:
+     S: Sequence
+     Delta: Just allocate memory
+     C: Just allocate memory and initialize at least once
+     ver: version of BM
+     detail: detail option
+     n: numbers of colums - 1
+     nr: numbers of rows
+
+   Return:
+     bad: numbers of bad part (return variable)
+     Delta; numbers to be added when copied (pointer)
+     C: C matrix in BM2 (pointer)
+
+*****************************************************/
 
 int getBadSequence(int *S, int *Delta, int *C, int ver, int detail, long n,
                    int nr) {
@@ -228,17 +318,7 @@ int getBadSequence(int *S, int *Delta, int *C, int ver, int detail, long n,
       /* Clear Delta */
       for (m = 0; m <= row; m++) Delta[m] = 0;
       /* Determine the bad sequence and calculate Delta */
-      for (k = 0; k <= n; k++) { /* k = pivot column */
-        if (detail) {
-          printf("S[n]-D= (");
-          for (l = 0; l < row; l++) printf("%d,", S[l + n * nr] - Delta[l]);
-          printf("%d)\n", S[row + n * nr] - Delta[row]);
-        }
-        if (detail) {
-          printf("S[n-k]= (");
-          for (l = 0; l < row; l++) printf("%d,", S[l + (n - k) * nr]);
-          printf("%d)\n", S[row + (n - k) * nr]);
-        }
+      for (k = 0; k <= n; k++) {     /* k = pivot column */
         for (l = 0; l <= row; l++) { /* l = row */
           if (S[l + (n - k) * nr] < S[l + n * nr] - Delta[l]) {
             if (S[l + 1 + n * nr] == 0 || l == row) {
@@ -251,11 +331,6 @@ int getBadSequence(int *S, int *Delta, int *C, int ver, int detail, long n,
           } else {
             l = row; /* Go to left sequence (k loop) */
           }
-        }
-        if (detail) {
-          printf("Delta = (");
-          for (l = 0; l < row; l++) printf("%d,", Delta[l]);
-          printf("%d)\n", Delta[row]);
         }
       }
       /* Calculate C matrix */
@@ -273,15 +348,6 @@ int getBadSequence(int *S, int *Delta, int *C, int ver, int detail, long n,
             l = 0;
           }
         }
-      }
-      if (detail) {
-        printf("C     = ");
-        for (l = 1; l <= bad; l++) {
-          printf("(");
-          for (m = 0; m < row; m++) printf("%d,", C[m + l * nr]);
-          printf("%d)", C[row + l * nr]);
-        }
-        printf("\n");
       }
     } else if (ver == 210) {
       /***** Version 2.1 *****/
@@ -388,40 +454,27 @@ int getBadSequence(int *S, int *Delta, int *C, int ver, int detail, long n,
   return bad;
 }
 
-/* showDetail shows detailed process */
-void showDetail(int *S, int *Delta, int *C, int ver, long n, int nr, long num,
-                int bad) {
-  int l, m;
-  printf("G = ");
-  for (l = 0; l < n; l++) {
-    if (l == n - bad) {
-      if (l == 0) printf("empty");
-      printf("\nB = ");
-    }
-    printf("(");
-    for (m = 0; m < nr - 1; m++) printf("%d,", S[m + l * nr]);
-    printf("%d)", S[nr - 1 + l * nr]);
-  }
-  printf("\nDelta = (");
-  for (l = 0; l < nr - 1; l++) printf("%d,", Delta[l]);
-  printf("%d)\n", Delta[nr - 1]);
-  /* Show C matrix */
-  if (ver == 200) {
-    printf("C = ");
-    for (l = 1; l <= bad; l++) {
-      printf("(");
-      for (m = 0; m < nr - 1; m++) printf("%d,", C[m + l * nr]);
-      printf("%d)", C[nr - 1 + l * nr]);
-    }
-    printf("\n");
-  }
-  /* Show f(n) */
-  printf("f(n) = %ld\n", num);
-  return;
-}
+/********************
+   copyBadSequence - copy the "bad part"
 
-/* copyBadSequence(S, Delta, C, ver, &n, nn, nr, bad)
-   Copy bad sequence */
+   This is the second core algorithm of Bashicu Matrix.
+
+   Input variables:
+     S: Sequence
+     Delta; numbers to be added when copied
+     C: C matrix in BM2
+     ver: version of BM
+     n: numbers of colums - 1
+     nn: numbers of columns after copying bad part - 1
+     nr: numbers of rows
+
+   Return:
+     S: Sequence
+     n: numbers of colums (pointer)
+        Note that it is NOT numbers of columns - 1.
+        In for loop at the main function, n-- is run each time.
+
+***************************/
 
 void copyBadSequence(int *S, int *Delta, int *C, int ver, long *n, long nn,
                      int nr, int bad) {
@@ -475,11 +528,26 @@ void copyBadSequence(int *S, int *Delta, int *C, int ver, long *n, long nn,
   }
 }
 
-/* oneStep
-   One step calculation ****************/
+/********************
+
+   oneStep - process calculation for one step
+
+   Input variables:
+     S: Sequence
+     nc: numbers of columns
+     nr: numbers of rows
+     num: integer parameter of BM
+     ver: version of BM
+     opt: calculation option
+
+   Return:
+     S: Sequence (pointer)
+     nc: numbers of columns (pointer)
+
+***************************/
 
 void oneStep(int *S, long *nc, int nr, long num, int ver, int opt) {
-  int *Delta, *C, bad, m;
+  int bad, m;
   int row = nr - 1;
   long nn;
   long n = *nc - 1;
@@ -487,8 +555,7 @@ void oneStep(int *S, long *nc, int nr, long num, int ver, int opt) {
   if (opt == 3) num *= num;
   if (opt == 4 && S[n * nr] == 0) num++;
   int s = num * (*nc + 1);
-  Delta = malloc(sizeof(int) * nr);
-  C = malloc(sizeof(int) * nr * s);
+  int Delta[nr], C[nr * s];
   for (m = 0; m <= row; m++) {
     C[m + nr] = 1;
   }
@@ -496,68 +563,79 @@ void oneStep(int *S, long *nc, int nr, long num, int ver, int opt) {
   nn = (opt == 4) ? n + bad * (num - 1) : n + bad * num;
   copyBadSequence(S, Delta, C, ver, &n, nn, nr, bad);
   *nc = n;
-  free(Delta);
-  free(C);
   return;
 }
 
-/* testOne
-   Test One step */
+/****************************
+  Compare 2 sequences S and S2
 
-void testOne(char *bm, char *result, int nr, int ver, long num, int opt) {
-  int S[100], i, j, len;
-  len = strlen(bm);
-  long nc = len / nr;
-  for (i = 0; i < len; i++) {
-    S[i] = bm[i] - '0';
+  returns 1 if S > S2
+          2 if S = S2
+          3 if S < S2
+
+  error when not determined
+******************************/
+
+int cmpSeq(int *S, long nc, int *S2, long nc2, int nr, int ver) {
+  int i, j, nc3, found = 0;
+  long n;
+  int Delta[nr], C[nr * (nc + nc2) * 2];
+  for (i = 0; i < nr; i++) {
+    C[i + nr] = 1;
   }
-  oneStep(S, &nc, nr, num, ver, opt);
-  int err = 0;
-  if (nc * nr == strlen(result)) {
-    for (i = 0; i < nc * nr; i++) {
-      if (result[i] != S[i] + '0') {
-        err = 1;
+  if (nc < nc2) {
+    nc3 = nc;
+  } else {
+    nc3 = nc2;
+  }
+  for (i = 0; i < nc3; i++) {
+    for (j = 0; j < nr; j++) {
+      if (S[j + i * nr] != S2[j + i * nr]) {
+        found = 1;
       }
     }
-    if (err == 0) {
-      return;
+    if (found) {
+      break;
     }
   }
-  printf("Test failed with ");
-  for (i = 0; i < len / nr; i++) {
-    printf("(");
-    for (j = 0; j < nr - 1; j++) printf("%d,", bm[j + i * nr] - '0');
-    printf("%d)", bm[nr - 1 + i * nr] - '0');
+  if (found == 0) {
+    if (nc == nc2) {
+      /* printf("%s = %s\n",getSeq(S,nr,nc),getSeq(S2,nr,nc2)); */
+      return 2;
+    }
+    if (nc < nc2) {
+      /* printf("%s < %s\n",getSeq(S,nr,nc),getSeq(S2,nr,nc2)); */
+      return 3;
+    }
+    return 1;
   }
-  printf("[%ld]\n", num);
-  printf("ver = %d, opt = %d\n", ver, opt);
-  printf("Input    = %s\nExpected = %s\nActual   = ", bm, result);
-  for (i = 0; i < nc * nr; i++) {
-    printf("%d", S[i]);
+  int bad, S3[nc * nr];
+  for (j = 0; j < nc * nr; j++) {
+    S3[j] = S[j];
   }
-  printf("\n");
-  exit(-1);
-}
-
-/* Show standard sequence
-
-  nr = numbers of rows
-  n  = numbers of columns - 1
-
-*/
-void showStd(int nr, long n) {
-  int S[nr * (n + 1)], i, j;
-  for (i = 0; i <= n; i++) {
+  while (1) {
+    bad = getBadSequence(S3, Delta, C, ver, 0, i, nr);
+    if (bad == 0) {
+      return 3;
+    }
+    n = i;
+    copyBadSequence(S3, Delta, C, ver, &n, i + 1, nr, bad);
+    found = 0;
     for (j = 0; j < nr; j++) {
-      S[j + i * nr] = i;
+      if (S2[j + i * nr] != S3[j + i * nr]) {
+        found = 1;
+      }
+    }
+    if (found == 0) {
+      /* printf("%s > %s\n",getSeq(S,nr,nc),getSeq(S2,nr,nc2)); */
+      return 1;
     }
   }
-  showSeq(S, nr, n + 1, 0, 0);
-  return;
 }
 
-/*
-   Check Standard format
+/****************************
+
+   chkStd - check standard format
 
    S: Sequence
    nc: numbers of columns
@@ -567,7 +645,8 @@ void showStd(int nr, long n) {
 
    return 0 if Standard
           1 if not
-****************/
+
+*****************************/
 
 int chkStd(int *S, long nc, int nr, int ver, int detail) {
   int i, j, row = 0;
@@ -627,11 +706,9 @@ int chkStd(int *S, long nc, int nr, int ver, int detail) {
   }
 
   /* Make a sequence above S (SA) */
-  int *SA, *Delta, *C, bad, num, nn, larger, smaller;
-  long p2;
-  SA = malloc(sizeof(int) * (row + 1) * nc * 2);
-  Delta = malloc(sizeof(int) * (row + 1));
-  C = malloc(sizeof(int) * (row + 1) * nc * 2);
+  int SA[(row + 1) * nc * 2], Delta[row + 1], C[(row + 1) * nc * 2], bad, num,
+      larger, smaller;
+  long nn, p2;
   for (i = 0; i < row + 1; i++) {
     C[i + row + 1] = 1;
   }
@@ -641,21 +718,18 @@ int chkStd(int *S, long nc, int nr, int ver, int detail) {
       SA[j + i * (row + 1)] = i;
     }
   }
-  if (detail) {
-    showSeq(SA, row + 1, p + 1, 0, 1);
-  }
 
   /* Check decreasing sequence of SA */
   while (1) {
+    if (detail) {
+      showSeq(SA, row + 1, p + 1, 0, 1);
+    }
     bad = getBadSequence(SA, Delta, C, ver, 0, p, row + 1);
     if (bad == 0) {
       if (detail) {
         printf("Not standard because it goes directly to ");
         showSeq(SA, row + 1, p, 0, 1);
       }
-      free(SA);
-      free(Delta);
-      free(C);
       return 1;
     }
     num = (nc + 1 - p) / bad + 1;
@@ -680,9 +754,6 @@ int chkStd(int *S, long nc, int nr, int ver, int detail) {
           showSeq(SA, row + 1, i + 1, 0, 0);
           printf("...\n");
         }
-        free(SA);
-        free(Delta);
-        free(C);
         return 1;
       }
       if (larger == 1 || smaller == 1) {
@@ -695,20 +766,567 @@ int chkStd(int *S, long nc, int nr, int ver, int detail) {
         showSeq(SA, row + 1, nc, 0, 1);
         printf("Standard.\n");
       }
-      free(SA);
-      free(Delta);
-      free(C);
       return 0;
     }
     p = p2;
-    if (detail) {
-      showSeq(SA, row + 1, p + 1, 0, 1);
-    }
   }
 }
 
+/************************
+  getOrd - Ordinal analysis
+
+  S: Sequence
+  nc: numbers of columns
+  nr: numbers of rows
+  ver: version
+  form: output format (reserved)
+        100 to return "e" when it is epsilon number
+
+  Return the ordinal
+
+*************************/
+
+char *getOrd(int *S, long nc, int nr, int ver, int form) {
+  int i, j, k, found;
+  char *ordinal = malloc(nc * 10 + 12);
+  char *plus = "+";
+  char *omega = "w";
+  char *omegahut = "w^";
+  char *epsilon = "e_";
+  char *psi = "p";
+  char *lp = "(";
+  char *rp = ")";
+  char *zero = "0";
+  char *twotimes = "*2";
+
+  /* Check if standard */
+  int std = chkStd(S, nc, nr, ver, 0);
+  if (std == 1) {
+    return "Not standard";
+  }
+
+  /* (0,0) = 1 */
+  if (nc == 1) {
+    return ("1");
+  }
+
+  /*
+    Theorems 1 and 2 of Deedlit11 from
+  https://googology.wikia.com/wiki/Talk:Pair_sequence_number
+
+  Theorem 1. (0,0) basically separates the sequence into summands, so for
+  example
+
+  |(0,0) A (0,0) B (0,0) C| = |(0,0) A| + |(0,0) B| + |(0,0) C|
+
+  */
+
+  for (i = nc - 1; i > 0; i--) {
+    found = 0;
+    for (j = 0; j < nr; j++) {
+      if (S[j + i * nr] > 0) {
+        found = 1;
+      }
+    }
+    if (found == 0) {
+      if (i == nc - 1) { /* successor ordinal */
+        for (i = nc - 1; i >= 0; i--) {
+          found = 0;
+          for (j = 0; j < nr; j++) {
+            if (S[j + i * nr] > 0) {
+              found = 1;
+            }
+          }
+          if (found == 1) {
+            break;
+          }
+        }
+        i++;
+        char ord2[4];
+        sprintf(ord2, "%ld", nc - i);
+        if (i == 0) {
+          strcpy(ordinal, ord2);
+          return ordinal;
+        }
+        char *ord1 = getOrd(S, i, nr, ver, form);
+        strcpy(ordinal, ord1);
+        strcat(ordinal, plus);
+        strcat(ordinal, ord2);
+        return ordinal;
+      }
+      char *ord1 = getOrd(S, i, nr, ver, form);
+      int S2[(nc - 1) * nr];
+      for (j = 0; j < (nc - i) * nr; j++) {
+        S2[j] = S[j + i * nr];
+      }
+      char *ord2 = getOrd(S2, nc - i, nr, ver, form);
+      strcpy(ordinal, ord1);
+      strcat(ordinal, plus);
+      strcat(ordinal, ord2);
+      return ordinal;
+    }
+  }
+
+  /*
+  Theorem 2. In a part of the sequence with no (0,0)'s, the (1,0)'s satisfy the
+  following:
+
+  |(0,0) A (1,0) B| = |(0,0)A| * w^|[(1,0) B - (1,0)]|
+  */
+
+  for (i = 1; i < nc; i++) {
+    found = 0;
+    if (S[i * nr] != 1) {
+      found = 1;
+    }
+    for (j = 1; j < nr; j++) {
+      if (S[j + i * nr] > 0) {
+        found = 1;
+      }
+    }
+    if (found == 0) {
+      char *ord1 = getOrd(S, i, nr, ver, form);
+      int S2[(nc - 1) * nr];
+      if (i == 1) {
+        /* 1w^a = w^a */
+        ord1 = "";
+      }
+      if (i == nc - 1) {
+        /* aw^1 = aw */
+        if (i == 1) {
+          /* 1w^a = w^a */
+          strcpy(ordinal, omega);
+        } else {
+          strcpy(ordinal, lp);
+          strcat(ordinal, ord1);
+          strcat(ordinal, rp);
+          strcat(ordinal, omega);
+        }
+        return ordinal;
+      }
+      for (j = 0; j < nc - i; j++) {
+        /* assertion because it is standard format */
+        assert(S[(i + j) * nr] > 0);
+        S2[j * nr] = S[(i + j) * nr] - 1;
+        for (k = 1; k < nr; k++) {
+          S2[k + j * nr] = S[k + (i + j) * nr];
+        }
+      }
+      char *ord2 = getOrd(S2, nc - i, nr, ver, form);
+      /* Check if a is epsilon number */
+      if (strcmp(getOrd(S, i, nr, 100, 100), "e") == 0) {
+        /* a is epsilon number, so aw^b = w^(ab) */
+        if (strcmp(ord1, ord2) == 0) {
+          /* if a=b, return w^w^(a2)
+            because aw^a = (w^a)^2 = w^(aa) = w^((w^a)2) = w^w^(a2)
+          */
+          strcpy(ordinal, omegahut);
+          strcat(ordinal, omegahut);
+          strcat(ordinal, lp);
+          strcat(ordinal, ord1);
+          strcat(ordinal, twotimes);
+          strcat(ordinal, rp);
+          return ordinal;
+        }
+        if (ord2[0] == 'w' && ord2[1] == '^') {
+          /* If b=w^c, return w^w^(a+c)
+             First compare a and b
+             if a<b. w^a<w^c and a<c. therefore return w^w^c = w^b
+           */
+          j = cmpSeq(S, i, S2, nc - i, nr, ver);
+          if (j == 3) {
+            strcat(ordinal, omegahut);
+            strcat(ordinal, ord2);
+            return ordinal;
+          }
+
+          /* Return w^w^(a+c) */
+          strcpy(ordinal, omegahut);
+          strcat(ordinal, omegahut);
+          strcat(ordinal, lp);
+          strcat(ordinal, ord1);
+          strcat(ordinal, plus);
+          strcat(ordinal, ord2 + 2);
+          strcat(ordinal, rp);
+          return ordinal;
+        }
+        if (strcmp(getOrd(S2, nc - i, nr, 100, 100), "e") == 0) {
+          /* If b is epsilon number, return w^w^(a+b) */
+          strcpy(ordinal, omegahut);
+          strcat(ordinal, omegahut);
+          strcat(ordinal, lp);
+          strcat(ordinal, ord1);
+          strcat(ordinal, plus);
+          strcat(ordinal, ord2);
+          strcat(ordinal, rp);
+          return ordinal;
+        }
+        /* Return w^(ab) */
+        strcpy(ordinal, omegahut);
+        strcat(ordinal, lp);
+        strcat(ordinal, lp);
+        strcat(ordinal, ord1);
+        strcat(ordinal, rp);
+        if (strchr(ord2, '+') == NULL && strchr(ord2, '_') == NULL) {
+          strcat(ordinal, ord2);
+        } else {
+          strcat(ordinal, lp);
+          strcat(ordinal, ord2);
+          strcat(ordinal, rp);
+        }
+        strcat(ordinal, rp);
+        return ordinal;
+      }
+
+      /* Now return aw^b */
+      if (i == 1) {
+        /* 1w^a = w^a */
+        strcpy(ordinal, omegahut);
+      } else {
+        strcpy(ordinal, lp);
+        strcat(ordinal, ord1);
+        strcat(ordinal, rp);
+        strcat(ordinal, omegahut);
+      }
+      if (strchr(ord2, '+') == NULL && strchr(ord2, '_') == NULL) {
+        strcat(ordinal, ord2);
+      } else {
+        strcat(ordinal, lp);
+        strcat(ordinal, ord2);
+        strcat(ordinal, rp);
+      }
+      return ordinal;
+    }
+  }
+
+  /*
+     For ordials below epsilon_0, all the ordinals are determined
+     with the algorighm up to here.
+
+     Moreover as we deleted all (0,0) (except for the first column) and (1,0),
+     it is epsilon number.
+  */
+
+  /*
+     When form = 100, just return "e" to indicate epsilon number
+  */
+
+  if (form == 100) {
+    return "e";
+  }
+
+  /* Analysis above pair sequence is only for BM2 */
+
+  if (ver != 200) {
+    ordinal = getSeq(S, nr, nc);
+    return ordinal;
+  }
+
+  /* Second column is (1,1,x,...) Because it is standard
+     (0,0)(1,0)... is not standard.
+   */
+
+  assert(S[nr] == 1);
+  assert(S[1 + nr] == 1);
+
+  if (nr == 2 || S[2 + nr] == 0) { /* Pair sequence */
+
+    /* epsilon_0 */
+    if (nc == 2) {
+      strcpy(ordinal, epsilon);
+      strcat(ordinal, zero);
+      return ordinal;
+    }
+    if (S[2 * nr] == 2 && S[1 + 2 * nr] > 0) {
+      /* Start from (0,0)(1,1)(2,2) or (0,0)(1,1)(2,1)
+
+      Using koteitan's algorithm
+      http://www.ukaibutton.com/googology/p2b.html
+
+      */
+      strcpy(ordinal, psi);
+      strcat(ordinal, zero);
+      strcat(ordinal, lp);
+      char buf[5];
+      for (i = 1; i < nc; i++) {
+        if (S[i * nr] > S[(i - 1) * nr]) {
+          strcat(ordinal, psi);
+          snprintf(buf, 5, "%d", S[1 + i * nr]);
+          strcat(ordinal, buf);
+          strcat(ordinal, lp);
+        } else {
+          strcat(ordinal, zero);
+          for (j = S[i * nr]; j < S[(i - 1) * nr] + 1; j++) {
+            strcat(ordinal, rp);
+          }
+          strcat(ordinal, plus);
+          strcat(ordinal, psi);
+          snprintf(buf, 5, "%d", S[1 + i * nr]);
+          strcat(ordinal, buf);
+          strcat(ordinal, lp);
+        }
+      }
+      strcat(ordinal, zero);
+      for (i = 0; i < S[(nc - 1) * nr] + 1; i++) {
+        strcat(ordinal, rp);
+      }
+      return ordinal;
+    }
+    /*
+
+    Now the ordinals from epsilon_0 to below zeta_0
+    (0,0)(1,1)A, where A starts from (a,0) (a>1) or (1,1)
+    This is epsilon numbers, epsilon_alpha.
+    We find a sequence which expresses alpha, and put it in S2.
+
+    */
+    int nc2, S2[nc * 2];
+    if (S[1 + 2 * nr] == 0) {
+      /* (0,0)(1,1)(2,0) */
+      assert(S[2 * nr] == 2);
+      if (nc > 3 && S[3 * nr] == 3 && S[1 + 3 * nr] == 1) {
+        /* Begin with (0,0)(1,1)(2,0)(3,1)
+           above epsilon_epsilon_0
+           alpha >= epsilon_0
+         */
+
+        /* Alpha begins with (0,0)(1,1) */
+        S2[0] = 0;
+        S2[1] = 0;
+        S2[2] = 1;
+        S2[3] = 1;
+
+        if (nc == 4) {
+          /* alpha = epsilon_0 = (0,0)(1,1) */
+          nc2 = 2;
+        } else {
+          /* Now S2 from 3rd column is determined in 2 steps.
+            (1) Cut left nodes
+            (3) If the column is (1,1), make it (0,0)
+            (2) Otherwise make (a,0) to (a-offset,0)
+
+            First determine cut and offset
+
+            Check the 5th cell which follows (3,1)
+
+            5th call = (1,1)
+            (0,0)(1,1)(2,0)(3,1)(1,1) = e_(e_0+1)
+                      (0,0)(1,1)(0,0) = e_0+1
+
+            5th cell = (a,0) a<3: cut = 2, offset=1
+
+            (0,0)(1,1)(2,0)(3,1)(2,0) = e_(e_0 w)
+                      (0,0)(1,1)(1,0) = e_0 w
+
+            5th cell = (3,0): cut = 0, offset = 1
+
+            (0,0)(1,1)(2,0)(3,1)(3,0) = e_(e_0^w)
+            (0,0)(1,1)(1,0)(2,1)(2,0) = e_0^w
+
+            5th cell = (a,b) a>2, except (3,0):
+                       cut = 2, offset=1
+
+            (0,0)(1,1)(2,0)(3,1)(3,1) = e_(e_1)
+                      (0,0)(1,1)(1,1) = e_1
+            (0,0)(1,1)(2,0)(3,1)(4,0) = e_(e_w)
+                      (0,0)(1,1)(2,0) = e_w
+            (0,0)(1,1)(2,0)(3,1)(4,0)(5,1) = e_(e_(e_0))
+                      (0,0)(1,1)(2,0)(3,1) = e_(e_0)
+          */
+          int cut = 2, offset = 1;
+          if (S[4 * nr] > 2) {
+            offset = 2;
+          }
+          if (S[4 * nr] == 3 && S[1 + 4 * nr] == 0) {
+            cut = 0, offset = 1;
+          }
+
+          /* Then do the cut and offset */
+          nc2 = nc - cut;
+          for (i = 2; i < nc2; i++) {
+            if (S[(i + cut) * nr] == 1 && S[1 + (i + cut) * nr] == 1) {
+              /* (1,1) -> (0,0) */
+              S2[i * 2] = 0;
+              S2[1 + i * 2] = 0;
+            } else {
+              /* (a,b) to (a-offset,b) */
+              S2[i * 2] = S[(i + cut) * nr] - offset;
+              S2[1 + i * 2] = S[1 + (i + cut) * nr];
+              /* if it has (0,0)(1,0)(2,1) pattern, change to (0,0)(1,1)
+                 to make it standard form
+              (0,0)(1,1)(2,0)(3,1)(1,1)(2,0)(3,1)(1,1)(2,0)(3,1) = e_(e_0*3) */
+              if (i > 1 && S2[i * 2 - 4] == 0 && S2[i * 2 - 3] == 0 &&
+                  S2[i * 2 - 2] == 1 && S2[i * 2 - 1] == 0 && S2[i * 2] == 2 &&
+                  S2[i * 2 + 1] == 1) {
+                S2[i * 2 - 1] = 1;
+                i--;
+                cut++;
+                nc2--;
+              }
+            }
+          }
+        }
+      } else {
+        /* (0,0)(1,1)(2,0)A where A doesn't start with (3,1)
+           In this pattern, S2 starts from (0,0) and
+           S2 from the 2nd column is determined with
+           cut = 1, offset = 1 algorithm
+         */
+        nc2 = nc - 1;
+        /* (0,0) first */
+        S2[0] = 0;
+        S2[1] = 0;
+        for (i = 1; i < nc2; i++) {
+          if (S[1 + (i + 1) * nr] == 1) {
+            /* (1,1) -> (0,0) */
+            assert(S[(i + 1) * nr] == 1);
+            S2[i * 2] = 0;
+            S2[i * 2 + 1] = 0;
+          }
+          /* (a,0) to (a-1,0) */
+          S2[i * 2] = S[(i + 1) * nr] - 1;
+          S2[i * 2 + 1] = 0;
+        }
+      }
+    } else {
+      /* (0,0)(1,1)(1,1)A
+         This pattern is just cut=2 and offset = 1
+       */
+      assert(S[2 * nr] == 1);
+      assert(S[1 + 2 * nr] == 1);
+      nc2 = nc - 2;
+      for (i = 0; i < nc2; i++) {
+        if (S[1 + (i + 2) * nr] == 1) {
+          /* (1,1) -> (0,0) */
+          assert(S[(i + 1) * nr] == 1);
+          S2[i * 2] = 0;
+          S2[i * 2 + 1] = 0;
+        }
+        /* (a,0) to (a-1,0) */
+        S2[i * 2] = S[(i + 2) * nr] - 1;
+        S2[i * 2 + 1] = 0;
+      }
+    }
+    /* Now we determined S2 for all patterns.
+       Convert S2 to ordinal alpha, and returns epsilon_alpha
+    */
+    char *ord1 = getOrd(S2, nc2, 2, ver, form);
+    strcat(ordinal, epsilon);
+    if (strlen(ord1) == 1) {
+      strcat(ordinal, ord1);
+    } else {
+      strcat(ordinal, lp);
+      strcat(ordinal, ord1);
+      strcat(ordinal, rp);
+    }
+    return ordinal;
+  }
+
+  /* Trio sequence
+   */
+
+  assert(nr > 2);
+  assert(S[1 + nr] == 1);
+
+  if (nr == 3 || S[3 + nr] == 0) { /* Trio sequence */
+    /* p0(pw(0)) */
+    if (nc == 2) {
+      return "p0(pw(0))";
+    }
+  }
+
+  /* Now going beyond the current analysis level and just
+     return the sequence as the ordinal */
+
+  ordinal = getSeq(S, nr, nc);
+  return ordinal;
+}
+
+/* showDetail shows detailed process */
+void showDetail(int *S, int *Delta, int *C, int ver, long n, int nr, long num,
+                int bad) {
+  int l, m;
+  int form = 0;
+  char *seq = getSeq(S, nr, n + 1);
+  int std = chkStd(S, n + 1, nr, ver, 0);
+  if (std == 0) {
+    char *ordinal = getOrd(S, n + 1, nr, ver, form);
+    if (strcmp(ordinal, seq)) {
+      printf("Ord = %s\n", ordinal);
+    }
+  }
+  printf("G = ");
+  for (l = 0; l < n; l++) {
+    if (l == n - bad) {
+      if (l == 0) printf("empty");
+      printf("\nB = ");
+    }
+    printf("(");
+    for (m = 0; m < nr - 1; m++) printf("%d,", S[m + l * nr]);
+    printf("%d)", S[nr - 1 + l * nr]);
+  }
+  printf("\nDelta = (");
+  for (l = 0; l < nr - 1; l++) printf("%d,", Delta[l]);
+  printf("%d)\n", Delta[nr - 1]);
+  /* Show C matrix */
+  if (ver == 200) {
+    printf("C = ");
+    for (l = 1; l <= bad; l++) {
+      printf("(");
+      for (m = 0; m < nr - 1; m++) printf("%d,", C[m + l * nr]);
+      printf("%d)", C[nr - 1 + l * nr]);
+    }
+    printf("\n");
+  }
+  /* Show f(n) */
+  printf("f(n) = %ld\n", num);
+  return;
+}
+
+/************************* Test codes ************************/
+
 /*
-  Test standard format
+   testOne - Test One step
+
+*/
+
+void testOne(char *bm, char *result, int nr, int ver, long num, int opt) {
+  int S[100], i, j, len;
+  len = strlen(bm);
+  long nc = len / nr;
+  for (i = 0; i < len; i++) {
+    S[i] = bm[i] - '0';
+  }
+  oneStep(S, &nc, nr, num, ver, opt);
+  int err = 0;
+  if (nc * nr == strlen(result)) {
+    for (i = 0; i < nc * nr; i++) {
+      if (result[i] != S[i] + '0') {
+        err = 1;
+      }
+    }
+    if (err == 0) {
+      return;
+    }
+  }
+  printf("Test failed with ");
+  for (i = 0; i < len / nr; i++) {
+    printf("(");
+    for (j = 0; j < nr - 1; j++) printf("%d,", bm[j + i * nr] - '0');
+    printf("%d)", bm[nr - 1 + i * nr] - '0');
+  }
+  printf("[%ld]\n", num);
+  printf("ver = %d, opt = %d\n", ver, opt);
+  printf("Input    = %s\nExpected = %s\nActual   = ", bm, result);
+  for (i = 0; i < nc * nr; i++) {
+    printf("%d", S[i]);
+  }
+  printf("\n");
+  exit(-1);
+}
+
+/*
+  testStd - test standard format
 
 */
 
@@ -734,21 +1352,93 @@ void testStd(char *bm, int expected, int nr, int ver) {
   exit(-1);
 }
 
+/*
+  testOrd - test ordinal analysis
+
+*/
+
+void testOrd(char *bm, char *expected, int nr, int ver, int detail) {
+  int S[100], i, len;
+  int form = 0;
+  len = strlen(bm);
+  char *ordinal = "";
+  long nc = len / nr;
+  for (i = 0; i < len; i++) {
+    S[i] = bm[i] - '0';
+  }
+  ordinal = getOrd(S, nc, nr, ver, form);
+  if (strcmp(expected, ordinal) == 0) {
+    if (detail) {
+      /* printf("*"); *** for posting on wikia */
+      showSeq(S, nr, nc, 0, 0);
+      printf(" = %s\n", ordinal);
+    }
+    return;
+  }
+  printf("Test failed with ");
+  showSeq(S, nr, nc, 0, 1);
+  printf("ver = %d\n", ver);
+  printf("Expected = %s\nActual   = %s\n", expected, ordinal);
+  exit(-1);
+}
+
+/*
+  Test cmpSeq
+*/
+
+void testCmpseq(char *bm, char *bm2, int expected, int nr, int ver) {
+  testStd(bm, 0, nr, ver);
+  testStd(bm2, 0, nr, ver);
+  int S[100], S2[100], i, len;
+  len = strlen(bm);
+  long nc = len / nr;
+  for (i = 0; i < len; i++) {
+    S[i] = bm[i] - '0';
+  }
+  len = strlen(bm2);
+  long nc2 = len / nr;
+  for (i = 0; i < len; i++) {
+    S2[i] = bm2[i] - '0';
+  }
+  i = cmpSeq(S, nc, S2, nc2, nr, ver);
+  if (i == expected) {
+    return;
+  }
+  printf("Test failed with\n");
+  showSeq(S, nr, nc, 0, 1);
+  showSeq(S2, nr, nc2, 0, 1);
+  printf("ver = %d\n", ver);
+  printf("Expected = %d\nActual   = %d\n", expected, i);
+  exit(-1);
+}
+
 /*********************
+
+  testall - Test everything
 
   Run this test by
 
     basmat -T
+
+  Input sequence is given by onecharacter-one number basis, and numbers
+  of rows are determined by the parameter "nr".
 
   Note that memory is allocated by S[100] in this test for simplicity.
   If you write a test, make it short or declare larger array.
 
 **********************/
 
-void test() {
-  /* testOne(input, expected, nr, ver, num, opt) */
+void testAll(detail) {
+  /* Test CompSeq function */
+  testCmpseq("001122", "0011", 1, 2, 100);
+  testCmpseq("001122", "001122", 2, 2, 100);
+  testCmpseq("0011", "001122", 3, 2, 100);
+  testCmpseq("001121", "001122", 3, 2, 100);
+  testCmpseq("00112230", "00112221", 1, 2, 100);
+  testCmpseq("00112221", "00112230", 3, 2, 100);
 
   /* Some basic calculations */
+  /* testOne(input, expected, nr, ver, num, opt) */
   testOne("0122", "0121212", 1, 100, 2, 1);
   testOne("0122", "012121212", 1, 200, 2, 2);
   testOne("0122", "01212121212", 1, 300, 2, 3);
@@ -832,20 +1522,104 @@ void test() {
   testStd("000111222123", 1, 3, 200);
   testStd("000111222320222", 1, 3, 220);
 
+  /* Test ordinal analysis */
+  testOrd("001", "Not standard", 1, 100, detail);
+  testOrd("0", "1", 1, 100, detail);
+  testOrd("000000", "6", 1, 100, detail);
+  testOrd("0100", "w+2", 1, 100, detail);
+  testOrd("010101", "w+w+w", 1, 100, detail); /* = w3 not calculated */
+  testOrd("0111", "w^3", 1, 100, detail);
+  testOrd("012", "w^w", 1, 100, detail);
+  testOrd("0123", "w^w^w", 1, 100, detail);
+  testOrd("012323", "w^(w^(w+w))", 1, 100, detail);
+  testOrd("01233000", "w^w^w^2+3", 1, 100, detail);
+  testOrd("0123423", "w^(w^(w^w+w))", 1, 100, detail);
+  testOrd("012345621233012", "w^(w^(w^w^w^w+1)+w^w^2)+w^w", 1, 100, detail);
+  testOrd("0011", "(0,0)(1,1)", 2, 100, 0); /* pair sequence only for BM2 */
+  testOrd("00111000", "(e_0)w+1", 2, 200, detail);
+  testOrd("00111010", "w^((e_0)2)", 2, 200, detail);
+  testOrd("00111020", "w^((e_0)w)", 2, 200, detail);
+  testOrd("00111021", "w^w^(e_0*2)", 2, 200, detail);
+  testOrd("0011102120", "w^((e_0)((e_0)w))", 2, 200, detail); /* = w^((e_0)w) */
+  testOrd("001110212031", "w^w^w^(e_0*2)", 2, 200, detail);
+  testOrd("001111", "e_1", 2, 200, detail);
+  testOrd("001111102121203131", "w^w^w^(e_1*2)", 2, 200, detail);
+  testOrd("0011111111", "e_3", 2, 200, detail);
+  testOrd("001120", "e_w", 2, 200, detail);
+  testOrd("001120102121", "w^w^(e_w+e_1)", 2, 200, detail);
+  testOrd("001120102130203140", "w^w^w^(e_w*2)", 2, 200, detail);
+  testOrd("00112011", "e_(w+1)", 2, 200, detail);
+  testOrd("00112020", "e_(w^2)", 2, 200, detail);
+  testOrd("00112030", "e_(w^w)", 2, 200, detail);
+  testOrd("001120301120", "e_(w^w+w)", 2, 200, detail);
+  testOrd("0011203040", "e_(w^w^w)", 2, 200, detail);
+  testOrd("00112031", "e_(e_0)", 2, 200, detail);
+  testOrd("0011203111", "e_(e_0+1)", 2, 200, detail);
+  testOrd("00112031112031", "e_(e_0+e_0)", 2, 200, detail);
+  testOrd("00112031112031112031", "e_(e_0+e_0+e_0)", 2, 200, detail);
+  testOrd("0011203120", "e_((e_0)w)", 2, 200, detail);
+  testOrd("00112031201111", "e_((e_0)w+2)", 2, 200, detail);
+  testOrd("001120312020", "e_(w^((e_0)2))", 2, 200, detail);
+  testOrd("001120312030", "e_(w^((e_0)w))", 2, 200, detail);
+  testOrd("001120312031", "e_(w^w^(e_0*2))", 2, 200, detail);
+  testOrd("0011203130", "e_(w^((e_0)((e_0)w)))", 2, 200, detail);
+  testOrd("001120313041", "e_(w^w^w^(e_0*2))", 2, 200, detail);
+  testOrd("0011203131", "e_(e_1)", 2, 200, detail);
+  testOrd("001120313131", "e_(e_2)", 2, 200, detail);
+  testOrd("0011203140", "e_(e_w)", 2, 200, detail);
+  testOrd("001120314050", "e_(e_(w^w))", 2, 200, detail);
+  testOrd("001120314051", "e_(e_(e_0))", 2, 200, detail);
+  testOrd("00112031405110", "(e_(e_(e_0)))w", 2, 200, detail);
+  testOrd("00112031405120", "e_(e_(e_0)+1)", 2, 200, detail);
+  testOrd("00112031405130", "e_((e_(e_0))w)", 2, 200, detail);
+  testOrd("00112031405140", "e_(e_((e_0)w))", 2, 200, detail);
+  testOrd("00112031405150", "e_(e_(w^((e_0)((e_0)w))))", 2, 200, detail);
+  testOrd("00112031405160", "e_(e_(e_w))", 2, 200, detail);
+  testOrd("0011203140516060", "e_(e_(e_(w^2)))", 2, 200, detail);
+  testOrd("0011203140516070", "e_(e_(e_(w^w)))", 2, 200, detail);
+  testOrd("0011203140516071", "e_(e_(e_(e_0)))", 2, 200, detail);
+  testOrd("001121", "p0(p1(p1(0)))", 2, 200, detail);
+  testOrd("00112111", "p0(p1(p1(0))+p1(0))", 2, 200, detail);
+  testOrd("00112121", "p0(p1(p1(0)+p1(0)))", 2, 200, detail);
+  testOrd("00112131", "p0(p1(p1(p1(0))))", 2, 200, detail);
+  testOrd("001122", "p0(p1(p2(0)))", 2, 200, detail);
+  testOrd("00112200", "p0(p1(p2(0)))+1", 2, 200, detail);
+  testOrd("00112210", "(p0(p1(p2(0))))w", 2, 200, detail);
+  testOrd("001122102132", "w^w^(p0(p1(p2(0)))*2)", 2, 200, detail);
+  testOrd("00112211", "p0(p1(p2(0))+p1(0))", 2, 200, detail);
+  testOrd("00112220", "p0(p1(p2(0)+p0(0)))", 2, 200, detail);
+  testOrd("00112221", "p0(p1(p2(0)+p1(0)))", 2, 200, detail);
+  testOrd("00112222", "p0(p1(p2(0)+p2(0)))", 2, 200, detail);
+  testOrd("00112230", "p0(p1(p2(p0(0))))", 2, 200, detail);
+  testOrd("00112231", "p0(p1(p2(p1(0))))", 2, 200, detail);
+  testOrd("00112232", "p0(p1(p2(p2(0))))", 2, 200, detail);
+  testOrd("00112233", "p0(p1(p2(p3(0))))", 2, 200, detail);
+  testOrd("000111100000000", "(p0(pw(0)))w+2", 3, 200, detail);
+  testOrd("000111100211200311", "w^w^w^(p0(pw(0))*2)", 3, 200, detail);
+  testOrd("000111222", "(0,0,0)(1,1,1)(2,2,2)", 3, 200, detail);
+  testOrd("0000111110002111", "w^w^((0,0,0,0)(1,1,1,1)*2)", 4, 200, detail);
+
   printf("Test completed without error.\n");
   return;
 }
 
-/**************************** Main ****************************/
+/****************************
+
+ main - main function which is invoked at the beginning
+
+ Commandline arguments are stored in argc and argv, which is
+ read through the standard getopt function.
+
+****************************/
 
 int main(int argc, char *argv[]) {
   /**************************** Initialization ****************************/
   int *S, *Delta, *C, row = 0, bad, i = 0, m, nr, len;
-  int opt = 1, ver, detail = 0, help = 0;
+  int opt = 1, ver, detail = 0, help = 0, test = 0;
   long n, nc, nn, num = 0, s = 20, step = 0, maxstep = 0;
   char *bm, arg;
-  /* Read commandline options */
 
+  /* Read commandline options */
   ver = intVersion((char *)versionBM);
   while ((arg = getopt(argc, argv, "v:o:s:t:dTh")) != -1) {
     switch (arg) {
@@ -869,13 +1643,17 @@ int main(int argc, char *argv[]) {
         detail = 1;
         break;
       case 'T':
-        test();
-        return 0;
+        test = 1;
+        break;
       case 'h':
         help = 1;
       default: /* '?' */
         help = 1;
     }
+  }
+  if (test) {
+    testAll(detail);
+    return 0;
   }
 
   if (opt < 1 || opt > 4) {
@@ -951,10 +1729,18 @@ int main(int argc, char *argv[]) {
   if (i && !detail) {
     printf("Not standard. Use detail option to see why.\n");
   }
+  if (i == 0 && detail) {
+    printf("--------------------------------------------\n");
+    printf("Legend for ordinal: w = omega, e = epsilon, p = Buchholz psi\n");
+  }
 
-  /**************************** Start calculation ****************************/
+  /****************************
+     Main loop of calculation
+   ****************************/
   for (; n >= 0; n--) {
-    if (detail) printf("--------------------------------------------\n");
+    if (detail) {
+      printf("--------------------------------------------\n");
+    }
     showSeq(S, nr, n + 1, num, 1); /* Show current sequence */
 
     /******* Calculation in 3 steps *******/
