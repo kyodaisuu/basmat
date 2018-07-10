@@ -1,6 +1,12 @@
 # basmat - Bashicu Matrix Calculator
 
-This program calculates Bashicu Matrix. Bashicu matrix system is a notation designed to produce large numbers. Bashicu matrix is a matrix such as ![BM](http://gyafun.jp/ln/basmat/eq1.png "BM") where all elements are nonnegative integers. The matrix can be written in the form of (a<sub>11</sub>, a<sub>21</sub>)(a<sub>12</sub>, a<sub>22</sub>)(a<sub>13</sub>, a<sub>23</sub>); sequence of transpose of each column. With an algorithm invented by Bashicu in 2014 and updated afterwards, Bashicu matrix BM works as a function from a natural number n to a natural number BM[n] (provided that the calculation ends), and written as (0,0)(1,1)(1,1)[3]. It is known that 2-row matrix, [pair sequence](http://googology.wikia.com/wiki/Pair_sequence_number), can be approximated with [Hardy function](http://googology.wikia.com/wiki/Hardy_hierarchy). When the function is approximated with Hardy function, the matrix itself represents the ordinal of the Hardy function, and therefore can be written as ![ordinal](http://gyafun.jp/ln/basmat/eq2.png "ordinal").
+This program calculates Bashicu Matrix. Bashicu matrix system is a notation designed to produce large numbers. Bashicu matrix is a matrix such as $$ \begin{pmatrix} a_{11} & a_{12} & a_{13}\\ a_{21} & a_{22} & a_{23}\end{pmatrix} $$ where all elements are nonnegative integers. The matrix can be written in the form of $$(a_{11},a_{21})(a_{12},a_{22})(a_{13},a_{23})$$ ; sequence of transpose of each column. With an algorithm invented by Bashicu in 2014 and updated afterwards, Bashicu matrix BM works as a function from a natural number n to a natural number BM[n] (provided that the calculation ends), and written as (0,0)(1,1)(1,1)[3]. It is known that 2-row matrix, [pair sequence](http://googology.wikia.com/wiki/Pair_sequence_number), can be approximated with [Hardy function](http://googology.wikia.com/wiki/Hardy_hierarchy). When the function is approximated with Hardy function, the matrix itself represents the ordinal of the Hardy function, and therefore can be written as:
+
+$$\begin{pmatrix}
+ 0 & 1 & 2 & 3 & 3\\
+ 0 & 1 & 2 & 3 & 2
+\end{pmatrix}
+= (0,0)(1,1)(2,2)(3,3)(3,2) = \psi(\psi_1(\Omega_2))$$
 
 See [Definition of Bashicu Matrix](definition.md) if you want to understand the definition of Bashicu Matrix by reading the source code.
 
