@@ -6,25 +6,19 @@ Basmat runs on Windows Subsystem for Linux on Windows 10.
 
 * [Install your Linux distribution of choice](https://docs.microsoft.com/en-us/windows/wsl/install-win10) following the instruction.
 * Run the following in the bash shell (assuming that you chose Utuntu or Debian).
-
 ```
-sudo apt-get install gcc make
+sudo apt install gcc make wget
 ```
-
-* Download the latest distribution of basmat from [release](https://github.com/kyodaisuu/basmat/releases). Download the archive of tar.gz.
-* Unpack the file by
+* Download and unpack the latest development file by
 ```
-tar xfvz vx.y.tar.gz
+wget https://github.com/kyodaisuu/basmat/tarball/master -O basmat.tar.gz
+tar xfvz basmat.tar.gz
 ```
-
-* Go to the directory of basmat-x.y.tar.gz by
-
+* Go to the directory of kyodaisuu-basmat-*** by
 ```
-cd basmat-x.y.tar.gz
+cd kyodaisuu-basmat***
 ```
-
 * Install basmat by
-
 ```
 ./configure && make
 sudo make install
@@ -33,22 +27,15 @@ sudo make install
 ## macOS
 
 * Install [Homebrew](https://brew.sh/)
-* Install basmat by
-
+* Install latest release of basmat by
 ```
 brew install kyodaisuu/math/basmat
 ```
 
 ## Unix system
 
-Download the [latest release](https://github.com/kyodaisuu/basmat/releases) or get the latest code from [GitHub repository](https://github.com/kyodaisuu/basmat) by
-
-```
-git clone https://github.com/kyodaisuu/basmat.git
-```
-
-Then go to the directory and follow the normal UNIX installation procedure, such as:
-
+* [Download the tar ball](https://github.com/kyodaisuu/basmat/tarball/master) of latest development version and unpack it.
+* Go to the directory and follow the normal UNIX installation procedure, such as
 ```
 ./configure && make
 su
