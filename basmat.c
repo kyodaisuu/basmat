@@ -69,6 +69,8 @@ int intVersion(char *version) {
     return 210;
   else if (strcmp(version, "2.2") == 0)
     return 220;
+  else if (strcmp(version, "2.3") == 0)
+    return 230;
   else if (strcmp(version, "3.0") == 0 || strcmp(version, "3") == 0)
     return 300;
   else {
@@ -232,6 +234,21 @@ int getParent(int *S, int r, int c, int nr) {
     if (S[r + i * nr] < S[r + c * nr]) return i;
   return -1;
 }
+/* getParentIB returns the column number of the parent of the child column c in row r in Bashicu matrix S consist of the nr rows with ignored branch model (it returns -1 when parent is not found) */
+int getParentIB(int *S, int r, int c, int nr){
+  int x=c;
+  int y=r;
+  while(x>0){
+    if(y==0){/* 1st row */
+      x=x-1;
+    }else{/* not 1st row */
+      x=getParentIB(S, y-1, x, nr);
+    }
+    if(S[y+x*nr]<S[y+c*nr])return x;
+  }
+  return -1;/* no parent */
+}
+
 /* getConcestor returns the column number of the concestor of with m rows
    from the child column c in Bashicu matrix S consist of the nr rows
    (it returns -1 when concestor is not found) */
@@ -272,7 +289,7 @@ int getConcestor(int *S, int m, int c, int nr) {
      C: Just allocate memory and initialize at least once
      ver: version of BM
      detail: detail option
-     n: numbers of colums - 1
+     n: numbers of columns - 1
      nr: numbers of rows
 
    Return:
@@ -287,7 +304,7 @@ int getBadSequence(int *S, int *Delta, int *C, int ver, int detail, long n,
   int bad = 0; /* Length of bad sequence */
   int found, j, l, m;
   int row = nr - 1;
-  long k;
+  long k, p;
 
   if (S[n * nr] == 0) {
     /* If the first row of S_n is 0, no bad sequence */
@@ -361,15 +378,6 @@ int getBadSequence(int *S, int *Delta, int *C, int ver, int detail, long n,
         /* find and jump to parent of n */
         for (l = 1; n - (k + l) >= 0; l++) {
           if (S[0 + (n - (k + l)) * nr] < S[0 + (n - k) * nr]) {
-#if 0
-          printf("find tree parent:\n");
-          printf("child =(");
-          for (j=0; j<row; j++) printf ("%d,",S[j+(n-k)*nr]);
-          printf ("%d)\n", S[j+(n-k)*nr]);
-          printf("parent=(");
-          for (j=0; j<row; j++) printf ("%d,",S[j+(n-k-l)*nr]);
-          printf ("%d)\n", S[j+(n-k-l)*nr]);
-#endif
             k = k + l; /* jump to parent */
             break;
           }
@@ -381,16 +389,6 @@ int getBadSequence(int *S, int *Delta, int *C, int ver, int detail, long n,
             break;
           }
         }
-#if 0
-      printf("find label parent:\n");
-      printf("child =(");
-      for (j=0; j<row; j++) printf ("%d,",S[j+n*nr]);
-      printf ("%d)\n", S[j+n*nr]);
-      printf("parent=(");
-      for (j=0; j<row; j++) printf ("%d,",S[j+(n-k)*nr]);
-      printf ("%d)\n", S[j+(n-k)*nr]);
-      printf("found=%d\n",found);
-#endif
         /* If all dimension are small, calculate Delta */
         if (found) {
           for (l = 0; l <= row; l++) {
@@ -449,9 +447,54 @@ int getBadSequence(int *S, int *Delta, int *C, int ver, int detail, long n,
           }
         }
       }
-    }
-  }
-  return bad;
+    } else if (ver == 230) {
+      /***** Version 2.3 *****/
+      /* Clear Delta */
+      for (m = 0; m <= row; m++) Delta[m] = 0;
+      /* Determine the bad sequence and calculate Delta (method is same as the one of BM2) */
+      for (k = 0; k <= n; k++) {     /* k = pivot column */
+        for (l = 0; l <= row; l++) { /* l = row */
+          if (S[l + (n - k) * nr] < S[l + n * nr] - Delta[l]) {
+            if (S[l + 1 + n * nr] == 0 || l == row) {
+              l = row;
+              bad = k;
+              k = n;
+            } else {
+              Delta[l] = S[l + n * nr] - S[l + (n - k) * nr];
+            }
+          } else {
+            l = row; /* Go to left sequence (k loop) */
+          }
+        }
+      }
+      /*
+      0 1 2 3 4 5 6 7
+      g g b b b b b c
+      n=7
+      bad=5
+      bad root = n-bad
+      */
+      /* Calculate C matrix */
+      for (j = 0; j < nr; j++) {
+        for (k = 0; k < bad; k++) {
+          p = k;
+          while(1){
+//            printf("j=%d, k=%ld, p=%ld, n=%ld, bad=%d\n",j, k, p, n, bad);
+            if(p==0){/* p reached the bad root */
+              C[j+(k+1)*nr] = 1; break;
+            }else if(p<0){/* p lost the bad root */
+              C[j+(k+1)*nr] = 0; break; 
+            }else{/* p have not reach the bad root */
+//              printf("getParentIB(S, %d, %ld, nr)=",j, p+n-bad);
+              p=getParentIB(S, j, p+n-bad, nr)-(n-bad); /* find next parent */
+//              printf("%ld\n",p);
+            }
+          }/* while find parent */
+        }/* for k */
+      }/* for j */
+    }/* if(ver==230) */
+    return bad;
+  }/* if(S[n * nr] == 0) */
 }
 
 /********************
@@ -487,7 +530,7 @@ void copyBadSequence(int *S, int *Delta, int *C, int ver, long *n, long nn,
         S[l + *n * nr] = S[l + (*n - bad) * nr] + Delta[l];
       *n = *n + 1;
     }
-  } else if (ver == 200) {
+  } else if (ver == 200 || ver == 230){
     /***** Version 2 *****/
     m = 1;
     while (*n < nn) {
@@ -1269,7 +1312,7 @@ void showDetail(int *S, int *Delta, int *C, int ver, long n, int nr, long num,
   for (l = 0; l < nr - 1; l++) printf("%d,", Delta[l]);
   printf("%d)\n", Delta[nr - 1]);
   /* Show C matrix */
-  if (ver == 200) {
+  if (ver == 200 || ver == 230) {
     printf("C = ");
     for (l = 1; l <= bad; l++) {
       printf("(");
@@ -1280,6 +1323,19 @@ void showDetail(int *S, int *Delta, int *C, int ver, long n, int nr, long num,
   }
   /* Show f(n) */
   printf("f(n) = %ld\n", num);
+  
+  printf("nr  = %d\n", nr);
+  printf("n   = %ld\n", n);
+  printf("bad = %d\n" , bad);
+  printf("ibS = ");
+  for (m=0;m<=n;m++) {
+    printf("(");
+    for (l=0;l<nr-1;l++) {
+      printf("%d,",getParentIB(S,l,m,nr));
+    }
+    printf("%d)",getParentIB(S,nr-1,m,nr));
+  }
+  printf("\n");
   return;
 }
 
