@@ -39,7 +39,7 @@ void showHelp() {
       "  ver  Version of Bashicu matrix system. Default = %s.\n",
       versionBM);
   printf(
-      "       Available versions: 1, 2, 2.1, 2.2, 3\n"
+      "       Available versions: 1, 2, 2.1, 2.2, 3, 2.3\n"
       "  opt  Calculation option.\n"
       "       opt = 1: n is constant. (Default)\n"
       "       opt = 2: n = n+1 for each loop.\n"
