@@ -467,27 +467,17 @@ int getBadSequence(int *S, int *Delta, int *C, int ver, int detail, long n,
           }
         }
       }
-      /*
-      0 1 2 3 4 5 6 7
-      g g b b b b b c
-      n=7
-      bad=5
-      bad root = n-bad
-      */
       /* Calculate C matrix */
       for (j = 0; j < nr; j++) {
         for (k = 0; k < bad; k++) {
           p = k;
           while(1){
-//            printf("j=%d, k=%ld, p=%ld, n=%ld, bad=%d\n",j, k, p, n, bad);
             if(p==0){/* p reached the bad root */
               C[j+(k+1)*nr] = 1; break;
             }else if(p<0){/* p lost the bad root */
               C[j+(k+1)*nr] = 0; break; 
             }else{/* p have not reach the bad root */
-//              printf("getParentIB(S, %d, %ld, nr)=",j, p+n-bad);
               p=getParentIB(S, j, p+n-bad, nr)-(n-bad); /* find next parent */
-//              printf("%ld\n",p);
             }
           }/* while find parent */
         }/* for k */
@@ -1322,20 +1312,7 @@ void showDetail(int *S, int *Delta, int *C, int ver, long n, int nr, long num,
     printf("\n");
   }
   /* Show f(n) */
-  printf("f(n) = %ld\n", num);
-  
-  printf("nr  = %d\n", nr);
-  printf("n   = %ld\n", n);
-  printf("bad = %d\n" , bad);
-  printf("ibS = ");
-  for (m=0;m<=n;m++) {
-    printf("(");
-    for (l=0;l<nr-1;l++) {
-      printf("%d,",getParentIB(S,l,m,nr));
-    }
-    printf("%d)",getParentIB(S,nr-1,m,nr));
-  }
-  printf("\n");
+  printf("f(n) = %ld\n", num);  
   return;
 }
 
