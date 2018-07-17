@@ -22,8 +22,8 @@ See [Installation](install.md).
     * BM sequence expression of Bashicu matrix.
     * n: natural number. n=2 if not given.
     * ex. "(0,0)(1,1)[3]"   (Quote to escape brackets in shell)
-* ver - Version of Bashicu matrix system. Default = 3.
-    * Available versions: 1, 2, 2.1, 2.2, 3
+* ver - Version of Bashicu matrix system. Default = 2.
+    * Available versions: 1, 2, 2.1, 2.2, 2.3, 3
     * See [basmat version](https://googology.wikia.com/wiki/User:Kyodaisuu/BasmatVersion) for detail
 * opt - Calculation option.
     * opt = 1: n is constant. (Default)

@@ -39,7 +39,7 @@ void showHelp() {
       "  ver  Version of Bashicu matrix system. Default = %s.\n",
       versionBM);
   printf(
-      "       Available versions: 1, 2, 2.1, 2.2, 3, 2.3\n"
+      "       Available versions: 1, 2, 2.1, 2.2, 2.3, 3\n"
       "  opt  Calculation option.\n"
       "       opt = 1: n is constant. (Default)\n"
       "       opt = 2: n = n+1 for each loop.\n"
@@ -124,6 +124,7 @@ char *getSeq(int *S, int nr, long nc) {
   char *rb = ")";
   char *comma = ",";
   char *n = malloc(4);
+  seq[0] = '\0';
   for (i = 0; i < nc; i++) {
     strcat(seq, lb);
     for (j = 0; j < nr; j++) {
@@ -234,19 +235,21 @@ int getParent(int *S, int r, int c, int nr) {
     if (S[r + i * nr] < S[r + c * nr]) return i;
   return -1;
 }
-/* getParentIB returns the column number of the parent of the child column c in row r in Bashicu matrix S consist of the nr rows with ignored branch model (it returns -1 when parent is not found) */
-int getParentIB(int *S, int r, int c, int nr){
-  int x=c;
-  int y=r;
-  while(x>0){
-    if(y==0){/* 1st row */
-      x=x-1;
-    }else{/* not 1st row */
-      x=getParentIB(S, y-1, x, nr);
+/* getParentIB returns the column number of the parent of the child column c in
+ * row r in Bashicu matrix S consist of the nr rows with ignored branch model
+ * (it returns -1 when parent is not found) */
+int getParentIB(int *S, int r, int c, int nr) {
+  int x = c;
+  int y = r;
+  while (x > 0) {
+    if (y == 0) { /* 1st row */
+      x = x - 1;
+    } else { /* not 1st row */
+      x = getParentIB(S, y - 1, x, nr);
     }
-    if(S[y+x*nr]<S[y+c*nr])return x;
+    if (S[y + x * nr] < S[y + c * nr]) return x;
   }
-  return -1;/* no parent */
+  return -1; /* no parent */
 }
 
 /* getConcestor returns the column number of the concestor of with m rows
@@ -451,7 +454,8 @@ int getBadSequence(int *S, int *Delta, int *C, int ver, int detail, long n,
       /***** Version 2.3 *****/
       /* Clear Delta */
       for (m = 0; m <= row; m++) Delta[m] = 0;
-      /* Determine the bad sequence and calculate Delta (method is same as the one of BM2) */
+      /* Determine the bad sequence and calculate Delta (method is same as the
+       * one of BM2) */
       for (k = 0; k <= n; k++) {     /* k = pivot column */
         for (l = 0; l <= row; l++) { /* l = row */
           if (S[l + (n - k) * nr] < S[l + n * nr] - Delta[l]) {
@@ -471,20 +475,23 @@ int getBadSequence(int *S, int *Delta, int *C, int ver, int detail, long n,
       for (j = 0; j < nr; j++) {
         for (k = 0; k < bad; k++) {
           p = k;
-          while(1){
-            if(p==0){/* p reached the bad root */
-              C[j+(k+1)*nr] = 1; break;
-            }else if(p<0){/* p lost the bad root */
-              C[j+(k+1)*nr] = 0; break; 
-            }else{/* p have not reach the bad root */
-              p=getParentIB(S, j, p+n-bad, nr)-(n-bad); /* find next parent */
+          while (1) {
+            if (p == 0) { /* p reached the bad root */
+              C[j + (k + 1) * nr] = 1;
+              break;
+            } else if (p < 0) { /* p lost the bad root */
+              C[j + (k + 1) * nr] = 0;
+              break;
+            } else { /* p have not reach the bad root */
+              p = getParentIB(S, j, p + n - bad, nr) -
+                  (n - bad); /* find next parent */
             }
-          }/* while find parent */
-        }/* for k */
-      }/* for j */
-    }/* if(ver==230) */
+          } /* while find parent */
+        }   /* for k */
+      }     /* for j */
+    }       /* if(ver==230) */
     return bad;
-  }/* if(S[n * nr] == 0) */
+  } /* if(S[n * nr] == 0) */
 }
 
 /********************
@@ -520,7 +527,7 @@ void copyBadSequence(int *S, int *Delta, int *C, int ver, long *n, long nn,
         S[l + *n * nr] = S[l + (*n - bad) * nr] + Delta[l];
       *n = *n + 1;
     }
-  } else if (ver == 200 || ver == 230){
+  } else if (ver == 200 || ver == 230) {
     /***** Version 2 *****/
     m = 1;
     while (*n < nn) {
@@ -1048,9 +1055,9 @@ char *getOrd(int *S, long nc, int nr, int ver, int form) {
     return "e";
   }
 
-  /* Analysis above pair sequence is only for BM2 */
+  /* Analysis above pair sequence is only for BM2 or 2.3 */
 
-  if (ver != 200) {
+  if (ver != 200 && ver != 230) {
     ordinal = getSeq(S, nr, nc);
     return ordinal;
   }
@@ -1312,7 +1319,7 @@ void showDetail(int *S, int *Delta, int *C, int ver, long n, int nr, long num,
     printf("\n");
   }
   /* Show f(n) */
-  printf("f(n) = %ld\n", num);  
+  printf("f(n) = %ld\n", num);
   return;
 }
 
@@ -1323,7 +1330,7 @@ void showDetail(int *S, int *Delta, int *C, int ver, long n, int nr, long num,
 
 */
 
-void testOne(char *bm, char *result, int nr, int ver, long num, int opt) {
+void testOne(char *bm, char *expected, int nr, int ver, long num, int opt) {
   int S[100], i, j, len;
   len = strlen(bm);
   long nc = len / nr;
@@ -1331,16 +1338,19 @@ void testOne(char *bm, char *result, int nr, int ver, long num, int opt) {
     S[i] = bm[i] - '0';
   }
   oneStep(S, &nc, nr, num, ver, opt);
-  int err = 0;
-  if (nc * nr == strlen(result)) {
-    for (i = 0; i < nc * nr; i++) {
-      if (result[i] != S[i] + '0') {
-        err = 1;
-      }
+  char *actual = malloc(100), *digit = malloc(2);
+  for (i = 0; i < nc * nr; i++) {
+    sprintf(digit, "%d", S[i]);
+    if (i == 0) {
+      strcpy(actual, digit);
+    } else {
+      strcat(actual, digit);
     }
-    if (err == 0) {
-      return;
-    }
+  }
+  if (strcmp(expected, actual) == 0) {
+    free(actual);
+    free(digit);
+    return;
   }
   printf("Test failed with ");
   for (i = 0; i < len / nr; i++) {
@@ -1350,11 +1360,9 @@ void testOne(char *bm, char *result, int nr, int ver, long num, int opt) {
   }
   printf("[%ld]\n", num);
   printf("ver = %d, opt = %d\n", ver, opt);
-  printf("Input    = %s\nExpected = %s\nActual   = ", bm, result);
-  for (i = 0; i < nc * nr; i++) {
-    printf("%d", S[i]);
-  }
-  printf("\n");
+  printf("Input    = %s\nExpected = %s\nActual   = %s\n", bm, expected, actual);
+  free(actual);
+  free(digit);
   exit(-1);
 }
 
@@ -1479,7 +1487,7 @@ void testAll(detail) {
   testOne("0123", "012222222222", 1, 100, 3, 3);
   testOne("0011", "00102030", 2, 220, 3, 1);
   testOne("00001100", "0000100020003000", 4, 220, 3, 1);
-  testOne("001100", "0011", 2, 200, 2, 4);
+  testOne("001100", "0011", 2, 230, 2, 4);
   testOne("001101", "0011", 2, 200, 2, 3);
   testOne("001110", "001100110011", 2, 200, 2, 1);
   testOne("000111", "000110220330", 3, 100, 3, 1);
@@ -1497,6 +1505,7 @@ void testAll(detail) {
   testOne("000111200111", "000111200110221300", 3, 200, 1, 1);
   testOne("000111200111", "000111200110221310", 3, 210, 1, 1);
   testOne("000111200111", "000111200", 3, 220, 1, 1);
+  testOne("000111200111", "000111200110221300", 3, 230, 1, 1);
   testOne("000111200111", "000111200110221300", 3, 300, 1, 1);
 
   /* (0,0,0)(1,0,0)(2,0,0)(2,1,0)(3,1,1)[1] */
@@ -1504,24 +1513,28 @@ void testAll(detail) {
   testOne("000100200210311", "000100200210310400420", 3, 200, 1, 1);
   testOne("000100200210311", "000100200210310410420", 3, 210, 1, 1);
   testOne("000100200210311", "000100200210", 3, 220, 1, 1);
+  testOne("000100200210311", "000100200210310400420", 3, 230, 1, 1);
   testOne("000100200210311", "000100200210310400420", 3, 300, 1, 1);
 
   /* (0,0,0)(1,1,1)(2,1,0)(1,1,1)[1] */
   testOne("000111210111", "000111210110221320", 3, 200, 1, 1);
   testOne("000111210111", "000111210110221320", 3, 210, 1, 1);
   testOne("000111210111", "000111210", 3, 220, 1, 1);
+  testOne("000111210111", "000111210110221320", 3, 230, 1, 1);
   testOne("000111210111", "000111210110221310", 3, 300, 1, 1);
 
   /* (0,0,0)(1,1,1)(2,1,1)(1,1,1)[1] */
   testOne("000111211111", "000111211110221321", 3, 200, 1, 1);
   testOne("000111211111", "000111211110221321", 3, 210, 1, 1);
   testOne("000111211111", "000111211110221321", 3, 220, 1, 1);
+  testOne("000111211111", "000111211110221321", 3, 230, 1, 1);
   testOne("000111211111", "000111211110221311", 3, 300, 1, 1);
 
   /* (0,0,0)(1,1,1)(2,2,2)(3,1,0)(2,2,1)[1] */
   testOne("000111222310221", "000111222310220331442530", 3, 200, 1, 1);
   testOne("000111222310221", "000111222310220331442530", 3, 210, 1, 1);
   testOne("000111222310221", "000111222310", 3, 220, 1, 1);
+  testOne("000111222310221", "000111222310220331442530", 3, 230, 1, 1);
   testOne("000111222310221", "000111222310220331442510", 3, 300, 1, 1);
 
   /* (0,0,0)(1,1,1)(2,2,2)(3,1,0)(2,2,2)[1] */
@@ -1529,6 +1542,7 @@ void testAll(detail) {
   testOne("000111222310222", "000111222310221332410", 3, 200, 1, 1);
   testOne("000111222310222", "000111222310221332420", 3, 210, 1, 1);
   testOne("000111222310222", "000111222310", 3, 220, 1, 1);
+  testOne("000111222310222", "000111222310221332410", 3, 230, 1, 1);
   testOne("000111222310222", "000111222310221332410", 3, 300, 1, 1);
 
   /* (0,0,0)(1,1,1)(2,2,2)(3,1,1)(2,2,2)[1] */
@@ -1536,7 +1550,20 @@ void testAll(detail) {
   testOne("000111222311222", "000111222311221332411", 3, 200, 1, 1);
   testOne("000111222311222", "000111222311221332421", 3, 210, 1, 1);
   testOne("000111222311222", "000111222311220331442531", 3, 220, 1, 1);
+  testOne("000111222310222", "000111222310221332410", 3, 230, 1, 1);
   testOne("000111222311222", "000111222311221332411", 3, 300, 1, 1);
+
+  /* (0,0,0,0)(1,1,1,1)(2,2,1,1)(3,3,1,1)(4,2,0,0)(5,1,1,1)(6,2,1,1)(7,3,1,1) */
+  testOne("00001111221133114200511162117311",
+          "000011112211331142005111621173108421952110621115001241113511", 4,
+          200, 1, 1);
+  testOne("00001111221133114200511162117311",
+          "0000111122113311420051116211731082219321", 4, 210, 1, 1);
+  testOne("00001111221133114200511162117311", "0000111122113311420051116211", 4,
+          220, 1, 1);
+  testOne("00001111221133114200511162117311",
+          "000011112211331142005111621173108421952110621115001242113521", 4,
+          230, 1, 1);
 
   /* Test standard format */
   /* testStd(bm, expected, nr, ver) */
@@ -1554,6 +1581,7 @@ void testAll(detail) {
   testStd("000111221222", 1, 3, 200);
   testStd("000111222123", 1, 3, 200);
   testStd("000111222320222", 1, 3, 220);
+  testStd("00001111221133114200511162117311", 0, 4, 230);
 
   /* Test ordinal analysis */
   testOrd("001", "Not standard", 1, 100, detail);
@@ -1568,9 +1596,15 @@ void testAll(detail) {
   testOrd("01233000", "w^w^w^2+3", 1, 100, detail);
   testOrd("0123423", "w^(w^(w^w+w))", 1, 100, detail);
   testOrd("012345621233012", "w^(w^(w^w^w^w+1)+w^w^2)+w^w", 1, 100, detail);
-  testOrd("0011", "(0,0)(1,1)", 2, 100, 0); /* pair sequence only for BM2 */
+  /* pair sequence only for BM2 and 2.3 */
+  testOrd("0011", "(0,0)(1,1)", 2, 100, 0);
+  testOrd("0011", "e_0", 2, 200, 0);
+  testOrd("0011", "(0,0)(1,1)", 2, 210, 0);
+  testOrd("0011", "(0,0)(1,1)", 2, 220, 0);
+  testOrd("0011", "e_0", 2, 230, 0);
+  testOrd("0011", "(0,0)(1,1)", 2, 300, 0);
   testOrd("00111000", "(e_0)w+1", 2, 200, detail);
-  testOrd("00111010", "w^((e_0)2)", 2, 200, detail);
+  testOrd("00111010", "w^((e_0)2)", 2, 230, detail);
   testOrd("00111020", "w^((e_0)w)", 2, 200, detail);
   testOrd("00111021", "w^w^(e_0*2)", 2, 200, detail);
   testOrd("0011102120", "w^((e_0)((e_0)w))", 2, 200, detail); /* = w^((e_0)w) */
