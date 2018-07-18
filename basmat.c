@@ -15,6 +15,7 @@ const char *version = "3.1-beta";
 
 #include <assert.h>
 #include <limits.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -119,16 +120,30 @@ void getMatrix(char *bm, int *S, int nr, long *nc, long *num) {
 
 char *getSeq(int *S, int nr, long nc) {
   int i, j;
-  char *seq = malloc(nr * nc * 3);
+  int digit = (int)log10(nc) + 1;
+  int mem = nc * (nr * (digit + 1) + 2) + 5;
+  char *seq = malloc(mem);
+  char *n = malloc(digit + 2);
+  if (seq == NULL || n == NULL) {
+    printf("Allocation failed.");
+    exit(-1);
+  }
   char *lb = "(";
   char *rb = ")";
   char *comma = ",";
-  char *n = malloc(4);
   seq[0] = '\0';
   for (i = 0; i < nc; i++) {
     strcat(seq, lb);
     for (j = 0; j < nr; j++) {
       sprintf(n, "%d", S[j + i * nr]);
+      if (strlen(seq) + strlen(n) + 3 > mem) {
+        mem = strlen(seq) + strlen(n) + 3;
+        seq = (char *)realloc(seq, mem);
+        if (seq == NULL) {
+          printf("Allocation failed.");
+          exit(-1);
+        }
+      }
       strcat(seq, n);
       if (j == nr - 1) {
         strcat(seq, rb);
@@ -829,6 +844,10 @@ int chkStd(int *S, long nc, int nr, int ver, int detail) {
 char *getOrd(int *S, long nc, int nr, int ver, int form) {
   int i, j, k, found;
   char *ordinal = malloc(nc * 10 + 12);
+  if (ordinal == NULL) {
+    printf("Allocation failed.");
+    exit(-1);
+  }
   char *plus = "+";
   char *omega = "w";
   char *omegahut = "w^";
@@ -1331,14 +1350,20 @@ void showDetail(int *S, int *Delta, int *C, int ver, long n, int nr, long num,
 */
 
 void testOne(char *bm, char *expected, int nr, int ver, long num, int opt) {
-  int S[100], i, j, len;
+  int i, j, len, mem;
   len = strlen(bm);
+  mem = len + strlen(expected);
+  int S[mem];
   long nc = len / nr;
   for (i = 0; i < len; i++) {
     S[i] = bm[i] - '0';
   }
   oneStep(S, &nc, nr, num, ver, opt);
-  char *actual = malloc(100), *digit = malloc(2);
+  char *actual = malloc(nc * (nr + 1)), *digit = malloc(3);
+  if (actual == NULL || digit == NULL) {
+    printf("Allocation failed.");
+    exit(-1);
+  }
   for (i = 0; i < nc * nr; i++) {
     sprintf(digit, "%d", S[i]);
     if (i == 0) {
@@ -1372,8 +1397,9 @@ void testOne(char *bm, char *expected, int nr, int ver, long num, int opt) {
 */
 
 void testStd(char *bm, int expected, int nr, int ver) {
-  int S[100], i, j, len, actual;
+  int i, j, len, actual;
   len = strlen(bm);
+  int S[len];
   long nc = len / nr;
   for (i = 0; i < len; i++) {
     S[i] = bm[i] - '0';
@@ -1399,9 +1425,10 @@ void testStd(char *bm, int expected, int nr, int ver) {
 */
 
 void testOrd(char *bm, char *expected, int nr, int ver, int detail) {
-  int S[100], i, len;
+  int i, len;
   int form = 0;
   len = strlen(bm);
+  int S[len];
   char *ordinal = "";
   long nc = len / nr;
   for (i = 0; i < len; i++) {
@@ -1463,9 +1490,6 @@ void testCmpseq(char *bm, char *bm2, int expected, int nr, int ver) {
 
   Input sequence is given by onecharacter-one number basis, and numbers
   of rows are determined by the parameter "nr".
-
-  Note that memory is allocated by S[100] in this test for simplicity.
-  If you write a test, make it short or declare larger array.
 
 **********************/
 
