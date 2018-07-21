@@ -40,7 +40,7 @@ void showHelp() {
       "  ver  Version of Bashicu matrix system. Default = %s.\n",
       versionBM);
   printf(
-      "       Available versions: 1, 2, 2.1, 2.2, 2.3, 3\n"
+      "       Available versions: 1, 2, 2.1, 2.2, 2.3, 3, 3.1, 3.1.1\n"
       "  opt  Calculation option.\n"
       "       opt = 1: n is constant. (Default)\n"
       "       opt = 2: n = n+1 for each loop.\n"
@@ -74,6 +74,10 @@ int intVersion(char *version) {
     return 230;
   else if (strcmp(version, "3.0") == 0 || strcmp(version, "3") == 0)
     return 300;
+  else if (strcmp(version, "3.1") == 0)
+    return 310;
+  else if (strcmp(version, "3.1.1") == 0)
+    return 311;
   else {
     return 0;
   }
@@ -504,7 +508,112 @@ int getBadSequence(int *S, int *Delta, int *C, int ver, int detail, long n,
           } /* while find parent */
         }   /* for k */
       }     /* for j */
-    }       /* if(ver==230) */
+    } else if (ver == 310) {
+      /***** Version 3.1 by Nish *****/
+      /* Clear Delta */
+      for (m = 0; m <= row; m++) Delta[m] = 0;
+      /* Determine the bad sequence and calculate Delta */
+      for (k = 0; k <= n; k++) {     /* k = pivot column */
+        for (l = 0; l <= row; l++) { /* l = row */
+          if (S[l + (n - k) * nr] < S[l + n * nr] - Delta[l]) {
+            if (S[l + 1 + n * nr] == 0 || l == row) {
+              l = row;
+              bad = k;
+              k = n;
+            } else {
+              Delta[l] = S[l + n * nr] - S[l + (n - k) * nr];
+            }
+          } else {
+            l = row; /* Go to left sequence (k loop) */
+          }
+        }
+      }
+      /* Calculate C matrix */
+      for (k = 1; k <= bad; k++) {
+        /* Find the largest l which satisfies S_(n-bad+l)[0] < S_(n-bad+k)[0] */
+        for (l = k; l >= 0; l--) {
+          if (S[(n - bad + l) * nr] < S[(n - bad + k) * nr]) {
+            for (m = 0; m <= row; m++) {
+              C[m + (k + 1) * nr] =
+                  (S[m + (n - bad) * nr] < S[m + (n - bad + k) * nr] &&
+                   C[m + (l + 1) * nr] == 1)
+                      ? 1
+                      : 0;
+            }
+            l = 0;
+          }
+        }
+      }
+      /* m = the row index which has lowermost non-zero in cut column */
+      for (m = nr-1; m >= 0; m--){
+        if(S[m + n * nr] != 0) break;
+      }
+      /* Check C is to be all 1 (in the row l<m) */
+      for (k = 0; k < bad; k++) {
+        for (l = 0; l < m; l++) {
+          if(C[l + (k + 1) * nr] == 0){ /* C is non zero */
+            /* force C=(1,0,...,0) */
+            for (l = 1; l < nr; l++) {
+              C[l + (k + 1) * nr] = 0;
+            }
+            break;
+          }
+        }
+      }
+    } else if (ver == 311) {
+      /***** Version 3.1.1 *****/
+      /* Clear Delta */
+      for (m = 0; m <= row; m++) Delta[m] = 0;
+      /* Determine the bad sequence and calculate Delta */
+      for (k = 0; k <= n; k++) {     /* k = pivot column */
+        for (l = 0; l <= row; l++) { /* l = row */
+          if (S[l + (n - k) * nr] < S[l + n * nr] - Delta[l]) {
+            if (S[l + 1 + n * nr] == 0 || l == row) {
+              l = row;
+              bad = k;
+              k = n;
+            } else {
+              Delta[l] = S[l + n * nr] - S[l + (n - k) * nr];
+            }
+          } else {
+            l = row; /* Go to left sequence (k loop) */
+          }
+        }
+      }
+      /* Calculate C matrix */
+      for (k = 1; k <= bad; k++) {
+        /* Find the largest l which satisfies S_(n-bad+l)[0] < S_(n-bad+k)[0] */
+        for (l = k; l >= 0; l--) {
+          if (S[(n - bad + l) * nr] < S[(n - bad + k) * nr]) {
+            for (m = 0; m <= row; m++) {
+              C[m + (k + 1) * nr] =
+                  (S[m + (n - bad) * nr] < S[m + (n - bad + k) * nr] &&
+                   C[m + (l + 1) * nr] == 1)
+                      ? 1
+                      : 0;
+            }
+            l = 0;
+          }
+        }
+      }
+      /* m = the row index which has lowermost non-zero in cut column */
+      for (m = nr-1; m >= 0; m--){
+        if(S[m + n * nr] != 0) break;
+      }
+      /* Check C is to be all 1 (in the row l<m) */
+      for (k = 0; k < bad; k++) {
+        for (l = 0; l < m; l++) {
+          if(C[l + (k + 1) * nr] == 0){ /* C is non zero */
+            /* force C=(0,0,...,0) */
+            for (l = 0; l < nr; l++) {
+              C[l + (k + 1) * nr] = 0;
+            }
+            break;
+          }/* if */
+        }/* for l */
+      }/* for k */
+      
+    }/* if(ver) */
     return bad;
   } /* if(S[n * nr] == 0) */
 }
@@ -542,7 +651,7 @@ void copyBadSequence(int *S, int *Delta, int *C, int ver, long *n, long nn,
         S[l + *n * nr] = S[l + (*n - bad) * nr] + Delta[l];
       *n = *n + 1;
     }
-  } else if (ver == 200 || ver == 230) {
+  } else if (ver == 200 || ver == 230 || ver == 310 || ver == 311) {
     /***** Version 2 *****/
     m = 1;
     while (*n < nn) {
@@ -1328,7 +1437,7 @@ void showDetail(int *S, int *Delta, int *C, int ver, long n, int nr, long num,
   for (l = 0; l < nr - 1; l++) printf("%d,", Delta[l]);
   printf("%d)\n", Delta[nr - 1]);
   /* Show C matrix */
-  if (ver == 200 || ver == 230) {
+  if (ver == 200 || ver == 230 || ver == 310 || ver == 311) {
     printf("C = ");
     for (l = 1; l <= bad; l++) {
       printf("(");
