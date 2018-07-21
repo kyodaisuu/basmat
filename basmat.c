@@ -512,7 +512,7 @@ int getBadSequence(int *S, int *Delta, int *C, int ver, int detail, long n,
       /***** Version 3.1 by Nish *****/
       /* Clear Delta */
       for (m = 0; m <= row; m++) Delta[m] = 0;
-      /* Determine the bad sequence and calculate Delta */
+      /* Determine the bad sequence and calculate Delta (as same as BM2) */
       for (k = 0; k <= n; k++) {     /* k = pivot column */
         for (l = 0; l <= row; l++) { /* l = row */
           if (S[l + (n - k) * nr] < S[l + n * nr] - Delta[l]) {
@@ -528,7 +528,7 @@ int getBadSequence(int *S, int *Delta, int *C, int ver, int detail, long n,
           }
         }
       }
-      /* Calculate C matrix */
+      /* Calculate C matrix once as same as BM2 */
       for (k = 1; k <= bad; k++) {
         /* Find the largest l which satisfies S_(n-bad+l)[0] < S_(n-bad+k)[0] */
         for (l = k; l >= 0; l--) {
@@ -548,9 +548,9 @@ int getBadSequence(int *S, int *Delta, int *C, int ver, int detail, long n,
       for (m = nr-1; m >= 0; m--){
         if(S[m + n * nr] != 0) break;
       }
-      /* Check C is to be all 1 (in the row l<m) */
+      /* Check C is to be all 1 (in the row l<=m) */
       for (k = 0; k < bad; k++) {
-        for (l = 0; l < m; l++) {
+        for (l = 0; l <= m; l++) {
           if(C[l + (k + 1) * nr] == 0){ /* C is non zero */
             /* force C=(1,0,...,0) */
             for (l = 1; l < nr; l++) {
@@ -580,7 +580,7 @@ int getBadSequence(int *S, int *Delta, int *C, int ver, int detail, long n,
           }
         }
       }
-      /* Calculate C matrix */
+      /* Calculate C matrix once as same as BM2 */
       for (k = 1; k <= bad; k++) {
         /* Find the largest l which satisfies S_(n-bad+l)[0] < S_(n-bad+k)[0] */
         for (l = k; l >= 0; l--) {
@@ -602,7 +602,7 @@ int getBadSequence(int *S, int *Delta, int *C, int ver, int detail, long n,
       }
       /* Check C is to be all 1 (in the row l<m) */
       for (k = 0; k < bad; k++) {
-        for (l = 0; l < m; l++) {
+        for (l = 0; l <= m; l++) {
           if(C[l + (k + 1) * nr] == 0){ /* C is non zero */
             /* force C=(0,0,...,0) */
             for (l = 0; l < nr; l++) {
@@ -1697,6 +1697,10 @@ void testAll(detail) {
   testOne("00001111221133114200511162117311",
           "000011112211331142005111621173108421952110621115001242113521", 4,
           230, 1, 1);
+  /* (0,0,0)(1,1,1)(2,1,0)(1,1,1) */
+  testOne("000111210111", "000111210110221320", 3, 200, 1, 1);
+  testOne("000111210111", "000111210110221310", 3, 310, 1, 1);
+  testOne("000111210111", "000111210110221210", 3, 311, 1, 1);
 
   /* Test standard format */
   /* testStd(bm, expected, nr, ver) */
