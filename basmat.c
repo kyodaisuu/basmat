@@ -1128,9 +1128,9 @@ char *getOrd(int *S, long nc, int nr, int ver, int form) {
     return "e";
   }
 
-  /* Analysis above pair sequence is only for BM2 or 2.3 */
+  /* Analysis above pair sequence is only for BM2,2.3,3.1 */
 
-  if (ver != 200 && ver != 230) {
+  if (ver != 200 && ver != 230 && ver != 310) {
     ordinal = getSeq(S, nr, nc);
     return ordinal;
   }
@@ -1683,13 +1683,14 @@ void testAll(detail) {
   testOrd("01233000", "w^w^w^2+3", 1, 100, detail);
   testOrd("0123423", "w^(w^(w^w+w))", 1, 100, detail);
   testOrd("012345621233012", "w^(w^(w^w^w^w+1)+w^w^2)+w^w", 1, 100, detail);
-  /* pair sequence only for BM2 and 2.3 */
+  /* pair sequence only for BM2, 2.3, 3.1 */
   testOrd("0011", "(0,0)(1,1)", 2, 100, 0);
   testOrd("0011", "e_0", 2, 200, 0);
   testOrd("0011", "(0,0)(1,1)", 2, 210, 0);
   testOrd("0011", "(0,0)(1,1)", 2, 220, 0);
   testOrd("0011", "e_0", 2, 230, 0);
   testOrd("0011", "(0,0)(1,1)", 2, 300, 0);
+  testOrd("0011", "e_0", 2, 310, 0);
   testOrd("00111000", "(e_0)w+1", 2, 200, detail);
   testOrd("00111010", "w^((e_0)2)", 2, 230, detail);
   testOrd("00111020", "w^((e_0)w)", 2, 200, detail);
