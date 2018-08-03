@@ -31,6 +31,10 @@ sudo make install
 ```
 brew install kyodaisuu/math/basmat
 ```
+* You can upgrade to the latest version of basmat and other programs installed by homebrew by
+```
+brew upgrade
+```
 
 ## Unix system
 
