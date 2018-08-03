@@ -2,7 +2,7 @@
 
    basmat - Bashicu Matrix Calculator
 */
-const char *version = "3.1-beta";
+const char *version = "3.1";
 /*
 
    Project website
@@ -23,7 +23,7 @@ const char *version = "3.1-beta";
 
 const char *versionBM = "2"; /* Default version of BM */
 
-/************************ Hep ***********************/
+/************************ Help ***********************/
 
 /*
    showHelp - show help
@@ -1547,7 +1547,7 @@ void testCmpseq(char *bm, char *bm2, int expected, int nr, int ver) {
 
 **********************/
 
-void testAll(detail) {
+void testAll(int detail) {
   /* Test CompSeq function */
   testCmpseq("001122", "0011", 1, 2, 100);
   testCmpseq("001122", "001122", 2, 2, 100);

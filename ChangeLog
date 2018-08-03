@@ -3,6 +3,14 @@ Bashicu Matrix Calculator Version History
 See version history of Bashicu Matrix at
 http://googology.wikia.com/wiki/User:Kyodaisuu/BasmatVersion
 
+Version 3.1 (2018-08-03)
+    * Added BM 2.3 by koteitan (PR#1 by koteitan)
+    * Added BM 3.1 by Nish (PR#2 by koteitan)
+    * Added -d option for ordinal conversion.
+    * Added -T option for test.
+    * Default version changed to BM2.
+    * Fixed bug of BM version 2.2.
+
 Version 3.0 (2018-06-29)
     * Added support for Bashicu Matrix version 3.
 
