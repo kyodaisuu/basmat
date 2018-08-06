@@ -1,0 +1,81 @@
+REM Bashicu Matrix version 2 simulator
+REM Made by Bashicu
+REM 09:17, April 10, 2017's version of Bashicu matrix number in this page
+REM http://ja.googology.wikia.com/wiki/%E3%83%A6%E3%83%BC%E3%82%B6%E3%83%BC%E3%83%96%E3%83%AD%E3%82%B0:BashicuHyudora/BASIC%E8%A8%80%E8%AA%9E%E3%81%AB%E3%82%88%E3%82%8B%E5%B7%A8%E5%A4%A7%E6%95%B0%E3%81%AE%E3%81%BE%E3%81%A8%E3%82%81
+
+REM Simulates the calculation process of input sequence
+REM n = constant
+REM Maxmum length of sequence is 30
+
+REM ======= Set initial variable =======
+REM A$="(0,0,0)(1,1,1)(1,1,0)[2]"
+input "" A$
+Z=30 REM maximum length of sequence
+
+dim B(1000,100),C(100,100),D(100)
+I=0: J=0:B(0,0)=0
+for M=1 to len(A$)
+  B$=mid$(A$,M,1)
+  if B$="," I=I+1: B(J,I)=0
+  if B$=")" J=J+1: F=I: I=0: B(J,J)=0
+  if B$="[" break
+  if B$>="0" and B$<="9" B(J,I)=B(J,I)*10+val(B$)
+next M
+D=0
+for M=M to len(A$)
+  B$=mid$(A$,M,1)
+  if B$>="0" and B$<="9"  A=A*10+val(B$)
+next M
+if A=0 A=2
+G=J-1
+
+  for Y=0 to F
+   C(1,Y)=1
+  next
+
+REM ======= Start calculation =======
+
+ for G=G to 0 step -1
+
+   for Y=0 to G
+     print "(";
+     for J=0 to F-1
+       print B(Y,J),",";
+     next J
+     print B(Y,F),")";
+   next Y
+   print "[",A,"]"
+
+  for H=0 to G
+   for I=0 to F
+    if B(G-H,I)<B(G,I)-D(I) or B(G,0)=0 then
+     if B(G,I+1)=0 then I=F:J=H:H=G else D(I)=B(G,I)-B(G-H,I) endif
+    else
+     I=F
+    endif
+   next
+  next
+  for K=1 to J
+   for L=K to 0 step -1
+    if B(G-J+L,0)<B(G-J+K,0) then
+     for M=0 to F
+      if B(G-J,M)<B(G-J+K,M) and C(L+1,M)=1 then C(K+1,M)=1 else C(K+1,M)=0 endif
+     next
+     L=0
+    endif
+   next
+  next
+  for N=1 to A
+   for O=1 to J
+    for P=0 to F
+     B(G,P)=B(G-J,P)
+     if C(O,P)=1 then B(G,P)=B(G,P)+D(P) endif
+    next
+    G=G+1
+    if G>Z end
+   next
+  next
+  for Q=0 to F REM Q=1 was changed to Q=0 by Fish
+   D(Q)=0
+  next
+ next
