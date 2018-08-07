@@ -9,7 +9,7 @@ REM (2) [] was changed to () for index variables
 REM (3) "&" to "and"
 REM (4) "|" to "or"
 REM (5) L.26: pow(A,A) was changed to A^A
-REM (6) L.28: Parenthesis was added
+REM (6) L.29: Parenthesis was added
 REM (7) L.30, 53, 57, 64: endif added
 REM Note that this program stops with index out of range error
 REM due to the revision (1).
