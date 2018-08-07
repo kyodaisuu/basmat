@@ -36,7 +36,7 @@ H=J-1
 REM ======= Start calculation =======
 
  for H=H to 1 step -1
- 
+
     for Y=0 to H
      print "(";
      for J=0 to G-1
@@ -45,7 +45,7 @@ REM ======= Start calculation =======
      print B(Y,G),")";
    next Y
    print "[",A,"]"
- 
+
   for I=0 to H-1
    for J=1 to G
     if (B(H-I,1)<B(H,1)-K and J=1) or (B(H-I,J)<B(H,J) and 1<J) then
@@ -90,7 +90,7 @@ REM ======= Start calculation =======
    next
   next
   K=0:L=0
-  for W=1 to G
+  for W=0 to G REM W=1 was changed to W=0 by Fish
    D(W)=0
   next
  next
