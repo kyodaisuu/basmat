@@ -1,6 +1,6 @@
 REM Bashicu Triangular Matrix
 REM Made by Bashicu
-REM 01:06, August 2, 2018's version of Bashicu triangular matrix number in this page
+REM 11:22, August 13, 2018's version of Bashicu triangular matrix number in this page
 REM http://ja.googology.wikia.com/wiki/%E3%83%A6%E3%83%BC%E3%82%B6%E3%83%BC%E3%83%96%E3%83%AD%E3%82%B0:BashicuHyudora/BASIC%E8%A8%80%E8%AA%9E%E3%81%AB%E3%82%88%E3%82%8B%E5%B7%A8%E5%A4%A7%E6%95%B0%E3%81%AE%E3%81%BE%E3%81%A8%E3%82%81
 
 REM Revisions to translate for yabasic
@@ -26,8 +26,12 @@ for E=0 to 9
   A=A^A
   for I=0 to H-1
    for J=1 to G
-    if (B(H-I,1)<B(H,1)-K and J=1) or (B(H-I,J)<B(H,J) and 1<J) then
-     if B(H,J+1)=0 and (J=1 or B(H-I,J+1)=0) then L=I:M=J:I=H:J=G else K=B(H,1)-B(H-I,1) endif
+    if B(H-I,1)<B(H,1)-K and J=1 or B(H-I,J)<B(H,J) and 1<J then
+     if B(H,J+1)=0 and (J=1 or (B(H,J)=1 or (1<B(H,J) and 0<B(H-I,J))) and B(H-I,J+1)=0) then
+      L=I:M=J:I=H:J=G
+     else
+      K=B(H,1)-B(H-I,1)
+     endif
     else
      J=G
     endif
