@@ -31,6 +31,9 @@ if ( $ENV{'SCRIPT_NAME'} eq "" ) {
 
 # Get form data
 
+# Input variales $ini, $ver, $max, $inc will be passed to shell
+# and therefore should be sanitized for security.
+
 my %formdata;
 my ( $input, $name, $val );
 my @inputs = split( '&', $ENV{'QUERY_STRING'} );
@@ -42,16 +45,22 @@ foreach $input (@inputs) {
     $formdata{$name} = $val;
 }
 my $ini = $formdata{'ini'};
+# Remove non-ascii characters and white space
 $ini =~ s/[^\x{21}-\x{7E}\s\t\n\r]//g;
 my $com = "";
 if ( substr( $ini, 0, 1 ) eq "s" ) { $com = "s"; }
 if ( substr( $ini, 0, 1 ) eq "b" ) { $com = "b"; }
+# Sanitize $ini: remove characters except 0123456789,()[]
 $ini =~ s/[^0-9(),\[\]]//g;
+# Sanitize $ini: maximum character length = 256
 $ini = substr( $ini, 0, 256 );
 my $max = $formdata{'max'};
+# Sanitize $max
 $max =~ s/[^0-9]//g;
 my $inc = $formdata{'inc'};
+# Sanitize $inc
 $inc =~ s/[^1-4]//g;
+if ( $inc < 1 or $inc > 4 ) { $inc = 1; }
 my $ver    = $formdata{'version'};
 my $detail = $formdata{'detail'};
 my $escaped;
@@ -87,7 +96,6 @@ my $sel1 = "";
 my $sel2 = "";
 my $sel3 = "";
 my $sel4 = "";
-if ( $inc < 1 or $inc > 4 ) { $inc = 1; }
 if ( $inc == 1 ) { $sel1 = "selected"; }
 if ( $inc == 2 ) { $sel2 = "selected"; }
 if ( $inc == 3 ) { $sel3 = "selected"; }
@@ -102,6 +110,7 @@ else {
 }
 
 # BM verion
+# $ver is sanitized here
 my $ver1  = '';
 my $ver2  = '';
 my $ver21 = '';
