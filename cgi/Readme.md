@@ -11,10 +11,10 @@ http://gyafun.jp/ln/basmat.cgi
 
 ## How to set up
 
+* Install basmat on your server.
 * Put basmat.cgi and help.txt on your server.
 * Edit the first line of basmat.cgi to specify the full path of perl.
-* Edit the parameters $url and $help in the initial setting section of basmat.cgi.
-* Compile basmat.c in the parent directory of this repository to make basmat, and put basmat at the same directory of basmat.cgi.
+* Edit the parameters $url, $basmat and $help in the initial setting section of basmat.cgi.
 * Make basmat.cgi executable as cgi. Refer [apache tutorial](https://httpd.apache.org/docs/current/en/howto/cgi.html).
 
 ## Pull request

@@ -16,6 +16,8 @@ use strict;
 my $title    = "Bashicu Matrix Calculator";
 # URL of the BM calculator
 my $url      = "http://gyafun.jp/ln/basmat.cgi";
+# Location of basmat
+my $basmat = "basmat/basmat";
 # Location of help file to be displayed when no input is given
 my $help     = "basmat/help.txt";
 
@@ -55,7 +57,7 @@ my $detail = $formdata{'detail'};
 my $escaped;
 
 # Sequence to be calculated $ini is formatted by calling basmat
-my $ini1 = `./basmat/basmat -t 1 \"$ini\" | grep -v "Not" | head -n 1`;
+my $ini1 = `$basmat -t 1 \"$ini\" | grep -v "Not" | head -n 1`;
 chomp($ini1);
 if ( length( uri_escape($ini1) ) < 256 && substr( $ini1, 0, 1 ) == "(" ) {
     $ini = $ini1;
@@ -256,7 +258,7 @@ if ( $ini eq "" ) {
 else {  # Calculation main
     print "<pre>";
     # Call basmat
-    system("./basmat/basmat -v $ver $d -s $max -o $inc -t 1000 \"$ini\"");
+    system("$basmat -v $ver $d -s $max -o $inc -t 1000 \"$ini\"");
     print "</pre>\n";
     use URI::Escape;
     $escaped = uri_escape($ini);
