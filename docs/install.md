@@ -36,14 +36,19 @@ brew install kyodaisuu/math/basmat
 brew upgrade
 ```
 
-## Unix system
+## Linux or other POSIX-oriented system
 
 * [Download the tar ball](https://github.com/kyodaisuu/basmat/tarball/master) of latest development version and unpack it.
-* Go to the directory and follow the normal UNIX installation procedure, such as
+* Go to the directory and follow the normal installation procedure, such as
 ```
 ./configure && make
 su
 make install
+```
+
+If you do not have root access on the system, you can install basmat somewhere on your home directory ($HOME/DIR/bin) by
+```
+./configure --prefix=$HOME/DIR && make && make install
 ```
 
 ----
