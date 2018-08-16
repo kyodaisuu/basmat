@@ -1916,7 +1916,7 @@ int main(int argc, char *argv[]) {
   }
   if (i == 0 && detail) {
     printf("--------------------------------------------\n");
-    printf("Legend for ordinal: w = omega, e = epsilon, p = Buchholz psi\n");
+    printf("Legend for ordinal: w = omega, e = epsilon, p = Bashicu's psi\n");
   }
 
   /****************************
