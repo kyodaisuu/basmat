@@ -2,7 +2,7 @@
 
    basmat - Bashicu Matrix Calculator
 */
-const char *version = "3.1";
+const char *version = "3.2";
 /*
 
    Project website
@@ -40,7 +40,7 @@ void showHelp() {
       "  ver  Version of Bashicu matrix system. Default = %s.\n",
       versionBM);
   printf(
-      "       Available versions: 1, 2, 2.1, 2.2, 2.3, 3, 3.1\n"
+      "       Available versions: 1, 2, 2.1, 2.2, 2.3, 3, 3.1, 3.2\n"
       "  opt  Calculation option.\n"
       "       opt = 1: n is constant. (Default)\n"
       "       opt = 2: n = n+1 for each loop.\n"
@@ -76,6 +76,8 @@ int intVersion(char *version) {
     return 300;
   else if (strcmp(version, "3.1") == 0)
     return 310;
+  else if (strcmp(version, "3.2") == 0)
+    return 320;
   else {
     return 0;
   }
@@ -558,6 +560,61 @@ int getBadSequence(int *S, int *Delta, int *C, int ver, int detail, long n,
           }
         }
       }
+    } else if (ver == 320) {
+      /***** Version 3.2 by Nish *****/
+      /* Clear Delta */
+      for (m = 0; m <= row; m++) Delta[m] = 0;
+      /* Determine the bad sequence and calculate Delta (as same as BM2) */
+      for (k = 0; k <= n; k++) {     /* k = pivot column */
+        for (l = 0; l <= row; l++) { /* l = row */
+          if (S[l + (n - k) * nr] < S[l + n * nr] - Delta[l]) {
+            if (S[l + 1 + n * nr] == 0 || l == row) {
+              l = row;
+              bad = k;
+              k = n;
+            } else {
+              Delta[l] = S[l + n * nr] - S[l + (n - k) * nr];
+            }
+          } else {
+            l = row; /* Go to left sequence (k loop) */
+          }
+        }
+      }
+      /* Calculate C matrix (same as BM2.3) */
+      for (j = 0; j < nr; j++) {
+        for (k = 0; k < bad; k++) {
+          p = k;
+          while (1) {
+            if (p == 0) { /* p reached the bad root */
+              C[j + (k + 1) * nr] = 1;
+              break;
+            } else if (p < 0) { /* p lost the bad root */
+              C[j + (k + 1) * nr] = 0;
+              break;
+            } else { /* p have not reach the bad root */
+              p = getParentIB(S, j, p + n - bad, nr) -
+                  (n - bad); /* find next parent */
+            }
+          } /* while find parent */
+        }   /* for k */
+      }     /* for j */
+      /* Change the ascension matrix C */
+      /* m = the row index which has lowermost non-zero in cut column */
+      for (m = nr - 1; m >= 0; m--) {
+        if (S[m + n * nr] != 0) break;
+      }
+      /* Check C is to be all 1 (in the row l<=m) */
+      for (k = 0; k < bad; k++) {
+        for (l = 0; l <= m; l++) {
+          if (C[l + (k + 1) * nr] == 0) { /* C is non zero */
+            /* force C=(1,0,...,0) */
+            for (l = 1; l < nr; l++) {
+              C[l + (k + 1) * nr] = 0;
+            }
+            break;
+          }
+        }
+      }
     } /* if(ver) */
     return bad;
   } /* if(S[n * nr] == 0) */
@@ -596,7 +653,7 @@ void copyBadSequence(int *S, int *Delta, int *C, int ver, long *n, long nn,
         S[l + *n * nr] = S[l + (*n - bad) * nr] + Delta[l];
       *n = *n + 1;
     }
-  } else if (ver == 200 || ver == 230 || ver == 310) {
+  } else if (ver == 200 || ver == 230 || ver == 310 || ver == 320) {
     /***** Version 2 *****/
     m = 1;
     while (*n < nn) {
@@ -809,7 +866,7 @@ int chkStd(int *S, long nc, int nr, int ver, int detail) {
   if (detail) {
     printf("Checking if ");
     showSeq(S, nr, nc, 0, 0);
-    printf(" is standard.\nDecreasing sequence from ");
+    printf(" is standard or not.\nDecreasing sequence from ");
     showStd(row + 2, 1);
     printf(" follows.\n");
   }
@@ -1128,9 +1185,9 @@ char *getOrd(int *S, long nc, int nr, int ver, int form) {
     return "e";
   }
 
-  /* Analysis above pair sequence is only for BM2,2.3,3.1 */
+  /* Analysis above pair sequence is only for BM2, 2.3, 3.1, 3.2 */
 
-  if (ver != 200 && ver != 230 && ver != 310) {
+  if (ver != 200 && ver != 230 && ver != 310 && ver != 320) {
     ordinal = getSeq(S, nr, nc);
     return ordinal;
   }
@@ -1382,7 +1439,7 @@ void showDetail(int *S, int *Delta, int *C, int ver, long n, int nr, long num,
   for (l = 0; l < nr - 1; l++) printf("%d,", Delta[l]);
   printf("%d)\n", Delta[nr - 1]);
   /* Show C matrix */
-  if (ver == 200 || ver == 230 || ver == 310) {
+  if (ver == 200 || ver == 230 || ver == 310 ||ver == 320) {
     printf("C = ");
     for (l = 1; l <= bad; l++) {
       printf("(");
@@ -1670,7 +1727,7 @@ void testAll(int detail) {
   testOne("000111222311222", "000111222311221332411", 3, 310, 1, 1);
 
   /* (0,0,0,0)(1,1,1,1)(2,2,1,1)(3,3,1,1)(4,2,0,0)(5,1,1,1)(6,2,1,1)(7,3,1,1)
-  Different result of BM2 and BM2.3 */
+  Different result of BM2 and BM3.1 or BM2.3 and BM3.2 (discussed in discord) */
   testOne("00001111221133114200511162117311",
           "000011112211331142005111621173108421952110621115001241113511", 4,
           200, 1, 1);
@@ -1681,6 +1738,12 @@ void testAll(int detail) {
   testOne("00001111221133114200511162117311",
           "000011112211331142005111621173108421952110621115001242113521", 4,
           230, 1, 1);
+  testOne("00001111221133114200511162117311",
+          "000011112211331142005111621173108421952110621112001211113211", 4,
+          310, 1, 1);
+  testOne("00001111221133114200511162117311",
+          "000011112211331142005111621173108421952110621112001242113521", 4,
+          320, 1, 1);
 
   /* Test standard format */
   /* testStd(bm, expected, nr, ver) */
@@ -1699,6 +1762,8 @@ void testAll(int detail) {
   testStd("000111222123", 1, 3, 200);
   testStd("000111222320222", 1, 3, 220);
   testStd("00001111221133114200511162117311", 0, 4, 230);
+  testStd("00001111221133114200511162117311", 0, 4, 310);
+  testStd("00001111221133114200511162117311", 0, 4, 320);
 
   /* Test ordinal analysis */
   testOrd("001", "Not standard", 1, 100, detail);
@@ -1713,12 +1778,14 @@ void testAll(int detail) {
   testOrd("01233000", "w^w^w^2+3", 1, 100, detail);
   testOrd("0123423", "w^(w^(w^w+w))", 1, 100, detail);
   testOrd("012345621233012", "w^(w^(w^w^w^w+1)+w^w^2)+w^w", 1, 100, detail);
-  /* pair sequence only for BM2, 2.3, 3.1 */
+  /* pair sequence only for BM2, 2.3, 3.1, 3.2 */
   testOrd("0011", "(0,0)(1,1)", 2, 100, 0);
   testOrd("0011", "e_0", 2, 200, 0);
   testOrd("0011", "(0,0)(1,1)", 2, 210, 0);
   testOrd("0011", "(0,0)(1,1)", 2, 220, 0);
   testOrd("0011", "e_0", 2, 230, 0);
+  testOrd("0011", "e_0", 2, 310, 0);
+  testOrd("0011", "e_0", 2, 320, 0);
   testOrd("0011", "(0,0)(1,1)", 2, 300, 0);
   testOrd("0011", "e_0", 2, 310, 0);
   testOrd("00111000", "(e_0)w+1", 2, 200, detail);
@@ -1782,6 +1849,9 @@ void testAll(int detail) {
   testOrd("000111100000000", "(p0(pw(0)))w+2", 3, 200, detail);
   testOrd("000111100211200311", "w^w^w^(p0(pw(0))*2)", 3, 200, detail);
   testOrd("000111222", "(0,0,0)(1,1,1)(2,2,2)", 3, 200, detail);
+  testOrd("000111222", "(0,0,0)(1,1,1)(2,2,2)", 3, 230, detail);
+  testOrd("000111222", "(0,0,0)(1,1,1)(2,2,2)", 3, 310, detail);
+  testOrd("000111222", "(0,0,0)(1,1,1)(2,2,2)", 3, 320, detail);
   testOrd("0000111110002111", "w^w^((0,0,0,0)(1,1,1,1)*2)", 4, 200, detail);
 
   printf("Test completed without error.\n");
