@@ -809,7 +809,7 @@ int chkStd(int *S, long nc, int nr, int ver, int detail) {
   if (detail) {
     printf("Checking if ");
     showSeq(S, nr, nc, 0, 0);
-    printf(" is standard.\nDecreasing sequence from ");
+    printf(" is standard or not.\nDecreasing sequence from ");
     showStd(row + 2, 1);
     printf(" follows.\n");
   }
