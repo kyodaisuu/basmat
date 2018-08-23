@@ -1,6 +1,6 @@
 REM Bashicu Triangular Matrix
 REM Made by Bashicu
-REM 11:22, August 13, 2018's version of Bashicu triangular matrix number in this page
+REM 20:19, August 20, 2018's version of Bashicu triangular matrix number in this page
 REM http://ja.googology.wikia.com/wiki/%E3%83%A6%E3%83%BC%E3%82%B6%E3%83%BC%E3%83%96%E3%83%AD%E3%82%B0:BashicuHyudora/BASIC%E8%A8%80%E8%AA%9E%E3%81%AB%E3%82%88%E3%82%8B%E5%B7%A8%E5%A4%A7%E6%95%B0%E3%81%AE%E3%81%BE%E3%81%A8%E3%82%81
 
 REM Revisions to translate for yabasic
@@ -9,13 +9,13 @@ REM (2) [] was changed to () for index variables
 REM (3) "&" to "and"
 REM (4) "|" to "or"
 REM (5) L.26: pow(A,A) was changed to A^A
-REM (6) L.29: Parenthesis was added
-REM (7) L.30, 53, 57, 64: endif added
+REM (6) L.31: Parenthesis was added
+REM (7) L.31, 33, 57, 67: endif added. elae in L.57 was changed to else.
 REM Note that this program stops with index out of range error
 REM due to the revision (1).
 
-A=9:dim B(1000,100),C(100,100),D(100)
-for E=0 to 9
+A=99:dim B(100,100),C(100,100),D(100)
+for E=0 to 99
  for F=1 to A
   B(F,1)=F:C(F,1)=1
   for G=2 to F
@@ -24,13 +24,13 @@ for E=0 to 9
  next
  for H=A to 1 step -1
   A=A^A
-  for I=0 to H-1
-   for J=1 to G
-    if B(H-I,1)<B(H,1)-K and J=1 or B(H-I,J)<B(H,J) and 1<J then
-     if B(H,J+1)=0 and (J=1 or (B(H,J)=1 or (1<B(H,J) and 0<B(H-I,J))) and B(H-I,J+1)=0) then
-      L=I:M=J:I=H:J=G
+  for I=1 to H-1
+   for J=1 to F
+    if B(H-I,J)<B(H,J)-D(J) then
+     if B(H,J+1)=0 then
+      if 1<B(H,J)-B(H-I,J) or ((J=2 or K=1) and 0<B(H,J+1)) then K=1 else L=I:M=J:I=H:J=F endif
      else
-      K=B(H,1)-B(H-I,1)
+      if J=1 then D(J)=B(H,J)-B(H-I,J) endif
      endif
     else
      J=G
@@ -39,10 +39,10 @@ for E=0 to 9
   next
   for N=2 to L
    C(N,1)=1
-   for O=2 to G
-    for P=0 to H-L+N-1
+   for O=2 to F
+    for P=0 to H
      if B(H-L+N-P-1,1)<B(H-L+N-1,1) then
-      if (C(N-P,O)=1 or C(N,2)=1) and B(H-L,O)<B(H-L+N-1,O) and O<M and C(N,O-1)=1 then
+      if (C(N-P,O)=1 or 2<O and C(N,O-1)=1) and B(H-L,O)<B(H-L+N-1,O) and O<M then
        C(N,O)=1
       else
        C(N,O)=0
@@ -54,24 +54,23 @@ for E=0 to 9
   next
   for Q=0 to H-1
    if B(H-Q,1)<B(H,1) then
-    if M=2 or 1<B(H,M) then Q=0 endif
+    if M<3 or K=1 then Q=0 else S=1 endif
     for R=1 to M-1
      D(R)=B(H-Q,R)-B(H-L,R)
     next
-    if 2<M and 1=B(H,M) then S=1 else S=0 endif
     Q=H
    endif
   next
   for T=1 to A
    for U=1+S to L
-    for V=1 to G
+    for V=1 to F
      if C(U,V)=1 then B(H,V)=B(H-L+S,V)+D(V) else B(H,V)=B(H-L+S,V) endif
     next
     H=H+1
    next
   next
-  K=0:L=0
-  for W=1 to G
+  K=0:L=0:S=0
+  for W=1 to F
    D(W)=0
   next
  next
