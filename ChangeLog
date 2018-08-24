@@ -3,7 +3,14 @@ Bashicu Matrix Calculator Version History
 See version history of Bashicu Matrix at
 http://googology.wikia.com/wiki/User:Kyodaisuu/BasmatVersion
 
+Version 3.2 (2018-08-24)
+
+    * Added BM 3.2 by Nish (PR#3 by koteitan)
+    * Source code of online version is added in cgi directory
+    * Legend of ordinal: Buchholz psi to Bashicu's psi
+
 Version 3.1 (2018-08-03)
+
     * Added BM 2.3 by koteitan (PR#1 by koteitan)
     * Added BM 3.1 by Nish (PR#2 by koteitan)
     * Added -d option for ordinal conversion.
@@ -12,6 +19,7 @@ Version 3.1 (2018-08-03)
     * Fixed bug of BM version 2.2.
 
 Version 3.0 (2018-06-29)
+
     * Added support for Bashicu Matrix version 3.
 
 Version 2.1 (2018-03-16)

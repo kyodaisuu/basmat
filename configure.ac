@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([basmat], [3.1], [https://github.com/kyodaisuu/basmat])
+AC_INIT([basmat], [3.2], [https://github.com/kyodaisuu/basmat])
 AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_SRCDIR([basmat.c])
 AC_CONFIG_HEADERS([config.h])
