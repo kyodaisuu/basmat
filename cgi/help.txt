@@ -24,7 +24,7 @@ where all elements are nonnegative integers. The matrix can be written in the fo
 </tr><tr>
 <td>Version 1 (BM1)<td>NT <td>Bashicu <td>2014
 </tr><tr>
-<td>Version 2 (BM2)<td>B <td>Bashicu <td>2016
+<td>Version 2 (BM2)<td>NT <td>Bashicu <td>2016
 </tr><tr>
 <td>Version 2.1 (BM2.1)<td>NT <td>koteitan <td>2018
 </tr><tr>
