@@ -78,7 +78,7 @@ int intVersion(char *version) {
     return 310;
   else if (strcmp(version, "3.2") == 0)
     return 320;
-  else if (strcmp(version, "4") == 0)
+  else if (strcmp(version, "4.0") == 0 || strcmp(version, "4") == 0)
     return 400;
   else {
     return 0;
