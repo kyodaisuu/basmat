@@ -622,7 +622,7 @@ int getBadSequence(int *S, int *Delta, int *C, int ver, int detail, long n,
       /* Clear Delta */
       for (m = 0; m <= row; m++) Delta[m] = 0;
       /* Determine the bad sequence and calculate Delta (this part is same as
-       * Version 2) */
+         Version 2) */
       for (k = 0; k <= n; k++) {     /* k = pivot column */
         for (l = 0; l <= row; l++) { /* l = row */
           if (S[l + (n - k) * nr] < S[l + n * nr] - Delta[l]) {
@@ -670,6 +670,7 @@ int getBadSequence(int *S, int *Delta, int *C, int ver, int detail, long n,
           }
         }
       }
+      free(E);
     } /* if(ver) */
     return bad;
   } /* if(S[n * nr] == 0) */
