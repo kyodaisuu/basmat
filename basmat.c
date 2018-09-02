@@ -1496,7 +1496,7 @@ void showDetail(int *S, int *Delta, int *C, int ver, long n, int nr, long num,
   for (l = 0; l < nr - 1; l++) printf("%d,", Delta[l]);
   printf("%d)\n", Delta[nr - 1]);
   /* Show C matrix */
-  if (ver == 200 || ver == 230 || ver == 310 || ver == 320) {
+  if (ver == 200 || ver == 230 || ver == 310 || ver == 320 || ver == 400) {
     printf("C = ");
     for (l = 1; l <= bad; l++) {
       printf("(");
