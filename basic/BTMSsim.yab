@@ -37,7 +37,7 @@ REM ======= Start calculation =======
      for J=0 to H-1
        print B(Y,J),",";
      next J
-     print B(Y,G),")";
+     print B(Y,H),")";
    next Y
    print "[",A,"]"
 
