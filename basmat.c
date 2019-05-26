@@ -1145,7 +1145,7 @@ char *getOrd(int *S, long nc, int nr, int ver, int form) {
         /* a is epsilon number, so aw^b = (w^a)(w^b) = w^(a+b) */
         if (strcmp(ord1, ord2) == 0) {
           /* if a=b, return w^(a2)
-          */
+           */
           strcat(ordinal, omegahut);
           strcat(ordinal, lp);
           strcat(ordinal, ord1);
