@@ -40,7 +40,7 @@ void showHelp() {
       "  ver  Version of Bashicu matrix system. Default = %s.\n",
       versionBM);
   printf(
-      "       Available versions: 1, 2, 2.1, 2.2, 2.3, 3, 3.1, 3.2, 4\n"
+      "       Available versions: 1, 2, 2.1, 2.2, 2.3, 3, 3.1, 3.2, 4, 3.3\n"
       "  opt  Calculation option.\n"
       "       opt = 1: n is constant. (Default)\n"
       "       opt = 2: n = n+1 for each loop.\n"
@@ -78,6 +78,8 @@ int intVersion(char *version) {
     return 310;
   else if (strcmp(version, "3.2") == 0)
     return 320;
+  else if (strcmp(version, "3.3") == 0)
+    return 330;
   else if (strcmp(version, "4") == 0)
     return 400;
   else {
@@ -510,6 +512,45 @@ int getBadSequence(int *S, int *Delta, int *C, int ver, int detail, long n,
           } /* while find parent */
         }   /* for k */
       }     /* for j */
+    } else if (ver == 330) {
+      /***** Version 3.3 *****/
+      /* Clear Delta */
+      for (m = 0; m <= row; m++) Delta[m] = 0;
+      /* Determine the bad sequence and calculate Delta (method is same as the
+       * one of BM2) */
+      for (k = 0; k <= n; k++) {     /* k = pivot column */
+        for (l = 0; l <= row; l++) { /* l = row */
+          if (S[l + (n - k) * nr] < S[l + n * nr] - Delta[l]) {
+            if (S[l + 1 + n * nr] == 0 || l == row) {
+              l = row;
+              bad = k;
+              k = n;
+            } else {
+              Delta[l] = S[l + n * nr] - S[l + (n - k) * nr];
+            }
+          } else {
+            l = row; /* Go to left sequence (k loop) */
+          }
+        }
+      }
+      /* Calculate C matrix */
+      for (j = 0; j < nr; j++) {
+        for (k = 0; k < bad; k++) {
+          p = k;
+          while (1) {
+            if (p == 0) { /* p reached the bad root */
+              C[j + (k + 1) * nr] = 1;
+              break;
+            } else if (p < 0) { /* p lost the bad root */
+              C[j + (k + 1) * nr] = 0;
+              break;
+            } else { /* p have not reach the bad root */
+              p = getParentIB(S, j, p + n - bad, nr) -
+                  (n - bad); /* find next parent */
+            }
+          } /* while find parent */
+        }   /* for k */
+      }     /* for j */
     } else if (ver == 310) {
       /***** Version 3.1 by Nish *****/
       /* Clear Delta */
@@ -710,7 +751,7 @@ void copyBadSequence(int *S, int *Delta, int *C, int ver, long *n, long nn,
       *n = *n + 1;
     }
   } else if (ver == 200 || ver == 230 || ver == 310 || ver == 320 ||
-             ver == 400) {
+             ver == 400 || ver == 330) {
     /***** Version 2 *****/
     m = 1;
     while (*n < nn) {
@@ -1244,7 +1285,7 @@ char *getOrd(int *S, long nc, int nr, int ver, int form) {
 
   /* Analysis above pair sequence is only for BM2, 2.3, 3.1, 3.2 */
 
-  if (ver != 200 && ver != 230 && ver != 310 && ver != 320) {
+  if (ver != 200 && ver != 230 && ver != 310 && ver != 320 && ver != 330) {
     ordinal = getSeq(S, nr, nc);
     return ordinal;
   }
@@ -1496,7 +1537,7 @@ void showDetail(int *S, int *Delta, int *C, int ver, long n, int nr, long num,
   for (l = 0; l < nr - 1; l++) printf("%d,", Delta[l]);
   printf("%d)\n", Delta[nr - 1]);
   /* Show C matrix */
-  if (ver == 200 || ver == 230 || ver == 310 || ver == 320 || ver == 400) {
+  if (ver == 200 || ver == 230 || ver == 310 || ver == 320 || ver == 330 || ver == 400) {
     printf("C = ");
     for (l = 1; l <= bad; l++) {
       printf("(");
@@ -1701,6 +1742,8 @@ void testAll(int detail) {
           2, 1);
   testOne("00112230213141", "0011223021314051627061718091102110101111", 2, 400,
           2, 1);
+  testOne("00112230213141", "0011223021314051627061718091102110101111", 2, 330,
+          2, 1);
 
   /* (0,0,0)(1,1,1)(2,0,0)(1,1,0)(2,1,0)(3,1,0)[1]
      infinite loop of BM1 by hyp cos */
@@ -1713,6 +1756,7 @@ void testAll(int detail) {
   testOne("000111200110210310", "000111200110210300411500410510", 3, 310, 1, 1);
   testOne("000111200110210310", "000111200110210300411500410510", 3, 320, 1, 1);
   testOne("000111200110210310", "000111200110210300411500410510", 3, 400, 1, 1);
+  testOne("000111200110210310", "000111200110210300411500410510", 3, 330, 1, 1);
 
   /* (0,0,0)(1,1,1)(2,0,0)(1,1,1)[1]
      infinite loop of BM1 and BM2.1 by KurohaKafka
@@ -1731,6 +1775,7 @@ void testAll(int detail) {
   testOne("000111200111", "000111200110221300", 3, 310, 1, 1);
   testOne("000111200111", "000111200110221300", 3, 320, 1, 1);
   testOne("000111200111", "000111200110221300", 3, 400, 1, 1);
+  testOne("000111200111", "000111200110221300", 3, 330, 1, 1);
 
   /* (0,0,0)(1,0,0)(2,0,0)(2,1,0)(3,1,1)[1] */
   testOne("000100200210311", "000100200210310320", 3, 100, 1, 1);
@@ -1742,6 +1787,7 @@ void testAll(int detail) {
   testOne("000100200210311", "000100200210310400410", 3, 310, 1, 1);
   testOne("000100200210311", "000100200210310400410", 3, 320, 1, 1);
   testOne("000100200210311", "000100200210310400420", 3, 400, 1, 1);
+  testOne("000100200210311", "000100200210310400420", 3, 330, 1, 1);
 
   /* (0,0,0)(1,1,1)(2,1,0)(1,1,1)[1]
 
@@ -1759,6 +1805,7 @@ void testAll(int detail) {
   testOne("000111210111", "000111210110221310", 3, 310, 1, 1);
   testOne("000111210111", "000111210110221310", 3, 320, 1, 1);
   testOne("000111210111", "000111210110221320", 3, 400, 1, 1);
+  testOne("000111210111", "000111210110221320", 3, 330, 1, 1);
 
   /* (0,0,0)(1,1,1)(2,1,1)(1,1,1)[1] */
   testOne("000111211111", "000111211110221321", 3, 200, 1, 1);
@@ -1769,6 +1816,7 @@ void testAll(int detail) {
   testOne("000111211111", "000111211110221321", 3, 310, 1, 1);
   testOne("000111211111", "000111211110221321", 3, 320, 1, 1);
   testOne("000111211111", "000111211110221321", 3, 400, 1, 1);
+  testOne("000111211111", "000111211110221321", 3, 330, 1, 1);
 
   /* (0,0,0)(1,1,1)(2,2,2)(3,1,0)(2,2,1)[1] */
   testOne("000111222310221", "000111222310220331442530", 3, 200, 1, 1);
@@ -1779,6 +1827,7 @@ void testAll(int detail) {
   testOne("000111222310221", "000111222310220331442510", 3, 310, 1, 1);
   testOne("000111222310221", "000111222310220331442510", 3, 320, 1, 1);
   testOne("000111222310221", "000111222310220331442530", 3, 400, 1, 1);
+  testOne("000111222310221", "000111222310220331442530", 3, 330, 1, 1);
 
   /* (0,0,0)(1,1,1)(2,2,2)(3,1,0)(2,2,2)[1] */
   testOne("000111222310222", "000111222310221332420", 3, 100, 1, 1);
@@ -1790,6 +1839,7 @@ void testAll(int detail) {
   testOne("000111222310222", "000111222310221332410", 3, 310, 1, 1);
   testOne("000111222310222", "000111222310221332410", 3, 320, 1, 1);
   testOne("000111222310222", "000111222310221332410", 3, 400, 1, 1);
+  testOne("000111222310222", "000111222310221332410", 3, 330, 1, 1);
 
   /* (0,0,0)(1,1,1)(2,2,2)(3,1,1)(2,2,2)[1] */
   testOne("000111222311222", "000111222311221332421", 3, 100, 1, 1);
@@ -1801,6 +1851,7 @@ void testAll(int detail) {
   testOne("000111222311222", "000111222311221332411", 3, 310, 1, 1);
   testOne("000111222311222", "000111222311221332411", 3, 320, 1, 1);
   testOne("000111222311222", "000111222311221332411", 3, 400, 1, 1);
+  testOne("000111222311222", "000111222311221332411", 3, 330, 1, 1);
 
   /* (0,0,0,0)(1,1,1,1)(2,2,0,0)(3,1,1,0)(1,1,1,1)
    Different result of BM2 and BM2.3 by rpakr
@@ -1818,6 +1869,8 @@ void testAll(int detail) {
           1);
   testOne("00001111220031101111", "00001111220031101110222133004220", 4, 400, 1,
           1);
+  testOne("00001111220031101111", "00001111220031101110222133004220", 4, 330, 1,
+          1);
 
   /* (0,0,0,0)(1,1,1,1)(2,2,0,0)(3,1,1,1)
   Bubby2 says there is a problem with BM3.1 and 3.2 */
@@ -1828,6 +1881,7 @@ void testAll(int detail) {
   testOne("0000111122003111", "000011112200311042215200", 4, 310, 1, 1);
   testOne("0000111122003111", "000011112200311042215200", 4, 320, 1, 1);
   testOne("0000111122003111", "000011112200311042215300", 4, 400, 1, 1);
+  testOne("0000111122003111", "000011112200311042215300", 4, 330, 1, 1);
 
   /* (0,0,0,0)(1,1,1,1)(2,2,1,1)(3,3,1,1)(4,2,0,0)(5,1,1,1)(6,2,1,1)(7,3,1,1)
   Different result of BM2 and BM3.1 or BM2.3 and BM3.2 (discussed in discord)
@@ -1853,6 +1907,9 @@ void testAll(int detail) {
   testOne("00001111221133114200511162117311",
           "000011112211331142005111621173108421952110621115001242113521", 4,
           400, 1, 1);
+  testOne("00001111221133114200511162117311",
+          "000011112211331142005111621173108421952110621115001242113521", 4,
+          330, 1, 1);
 
   /* Test standard format */
   /* testStd(bm, expected, nr, ver) */
