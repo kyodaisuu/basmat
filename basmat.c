@@ -1656,7 +1656,6 @@ void testOrd(char *bm, char *expected, int nr, int ver, int detail) {
 */
 
 void testCmpseq(char *bm, char *bm2, int expected, int nr, int ver) {
-  printf("<%s>",bm);
   testStd(bm, 0, nr, ver);
   testStd(bm2, 0, nr, ver);
   int S[100], S2[100], i, len;
