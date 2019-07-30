@@ -80,7 +80,7 @@ int intVersion(char *version) {
     return 320;
   else if (strcmp(version, "3.3") == 0)
     return 330;
-  else if (strcmp(version, "4") == 0)
+  else if (strcmp(version, "4.0") == 0 || strcmp(version, "4") == 0)
     return 400;
   else {
     return 0;
@@ -1206,12 +1206,10 @@ char *getOrd(int *S, long nc, int nr, int ver, int form) {
       char *ord2 = getOrd(S2, nc - i, nr, ver, form);
       /* Check if a is epsilon number */
       if (strcmp(getOrd(S, i, nr, 100, 100), "e") == 0) {
-        /* a is epsilon number, so aw^b = w^(ab) */
+        /* a is epsilon number, so aw^b = (w^a)(w^b) = w^(a+b) */
         if (strcmp(ord1, ord2) == 0) {
-          /* if a=b, return w^w^(a2)
-            because aw^a = (w^a)^2 = w^(aa) = w^((w^a)2) = w^w^(a2)
-          */
-          strcpy(ordinal, omegahut);
+          /* if a=b, return w^(a2)
+           */
           strcat(ordinal, omegahut);
           strcat(ordinal, lp);
           strcat(ordinal, ord1);
@@ -1219,52 +1217,23 @@ char *getOrd(int *S, long nc, int nr, int ver, int form) {
           strcat(ordinal, rp);
           return ordinal;
         }
-        if (ord2[0] == 'w' && ord2[1] == '^') {
-          /* If b=w^c, return w^w^(a+c)
-             First compare a and b
-             if a<b. w^a<w^c and a<c. therefore return w^w^c = w^b
-           */
-          j = cmpSeq(S, i, S2, nc - i, nr, ver);
-          if (j == 3) {
-            strcat(ordinal, omegahut);
-            strcat(ordinal, ord2);
-            return ordinal;
-          }
-
-          /* Return w^w^(a+c) */
-          strcpy(ordinal, omegahut);
+        /* Return w^(a+b)
+           First compare a and b and if a<b, return w^(b)
+        */
+        j = cmpSeq(S, i, S2, nc - i, nr, ver);
+        if (j == 3) {
           strcat(ordinal, omegahut);
           strcat(ordinal, lp);
-          strcat(ordinal, ord1);
-          strcat(ordinal, plus);
-          strcat(ordinal, ord2 + 2);
-          strcat(ordinal, rp);
-          return ordinal;
-        }
-        if (strcmp(getOrd(S2, nc - i, nr, 100, 100), "e") == 0) {
-          /* If b is epsilon number, return w^w^(a+b) */
-          strcpy(ordinal, omegahut);
-          strcat(ordinal, omegahut);
-          strcat(ordinal, lp);
-          strcat(ordinal, ord1);
-          strcat(ordinal, plus);
           strcat(ordinal, ord2);
           strcat(ordinal, rp);
           return ordinal;
         }
-        /* Return w^(ab) */
+        /* Return w^(a+b) */
         strcpy(ordinal, omegahut);
         strcat(ordinal, lp);
-        strcat(ordinal, lp);
         strcat(ordinal, ord1);
-        strcat(ordinal, rp);
-        if (strchr(ord2, '+') == NULL && strchr(ord2, '_') == NULL) {
-          strcat(ordinal, ord2);
-        } else {
-          strcat(ordinal, lp);
-          strcat(ordinal, ord2);
-          strcat(ordinal, rp);
-        }
+        strcat(ordinal, plus);
+        strcat(ordinal, ord2);
         strcat(ordinal, rp);
         return ordinal;
       }
@@ -1308,7 +1277,7 @@ char *getOrd(int *S, long nc, int nr, int ver, int form) {
 
   /* Analysis above pair sequence is only for BM2, 2.3, 3.1, 3.2, 3.3 */
 
-  if (ver != 200 && ver != 230 && ver != 310 && ver != 320 && ver != 330) {
+  if (ver != 200 && ver != 230 && ver != 310 && ver != 320 && ver != 330 && ver != 400) {
     ordinal = getSeq(S, nr, nc);
     return ordinal;
   }
@@ -1934,6 +1903,42 @@ void testAll(int detail) {
           "000011112211331142005111621173108421952110621115001242113521", 4,
           330, 1, 1);
 
+  /* Different result of BM2 and BM4 (=BM2.3)
+     row = 4, column = 5
+     (0,0,0,0)(1,1,1,1)(2,2,0,0)(3,1,1,0)(1,1,1,1)
+     (0,0,0,0)(1,1,1,1)(2,2,0,0)(3,1,1,0)(2,1,1,1)
+     (0,0,0,0)(1,1,1,1)(2,2,0,0)(3,1,1,1)(1,1,1,1)
+     (0,0,0,0)(1,1,1,1)(2,2,0,0)(3,1,1,1)(2,1,1,1)
+     (0,0,0,0)(1,1,1,1)(2,2,0,0)(3,1,1,1)(3,1,1,1)
+     (0,0,0,0)(1,1,1,1)(2,2,0,0)(3,1,1,1)(4,1,1,1)
+     calculated by Fish at
+     http://gyafun.jp/ln/archive/diff24.txt */
+
+  testOne("00001111220031101111", "00001111220031101110222133004210", 4, 200, 1,
+          1);
+  testOne("00001111220031101111", "00001111220031101110222133004220", 4, 400, 1,
+          1);
+  testOne("00001111220031102111", "00001111220031102110322143005210", 4, 200, 1,
+          1);
+  testOne("00001111220031102111", "00001111220031102110322143005220", 4, 400, 1,
+          1);
+  testOne("00001111220031111111", "00001111220031111110222133004211", 4, 200, 1,
+          1);
+  testOne("00001111220031111111", "00001111220031111110222133004221", 4, 400, 1,
+          1);
+  testOne("00001111220031112111", "00001111220031112110322143005211", 4, 200, 1,
+          1);
+  testOne("00001111220031112111", "00001111220031112110322143005221", 4, 400, 1,
+          1);
+  testOne("00001111220031113111", "00001111220031113110422153006211", 4, 200, 1,
+          1);
+  testOne("00001111220031113111", "00001111220031113110422153006221", 4, 400, 1,
+          1);
+  testOne("00001111220031114111", "00001111220031114110522163007211", 4, 200, 1,
+          1);
+  testOne("00001111220031114111", "00001111220031114110522163007221", 4, 400, 1,
+          1);
+
   /* Test standard format */
   /* testStd(bm, expected, nr, ver) */
   testStd("012", 0, 1, 100);
@@ -1978,17 +1983,17 @@ void testAll(int detail) {
   testOrd("0011", "(0,0)(1,1)", 2, 300, 0);
   testOrd("0011", "e_0", 2, 310, 0);
   testOrd("00111000", "(e_0)w+1", 2, 200, detail);
-  testOrd("00111010", "w^((e_0)2)", 2, 230, detail);
-  testOrd("00111020", "w^((e_0)w)", 2, 200, detail);
-  testOrd("00111021", "w^w^(e_0*2)", 2, 200, detail);
-  testOrd("0011102120", "w^((e_0)((e_0)w))", 2, 200, detail); /* = w^((e_0)w) */
-  testOrd("001110212031", "w^w^w^(e_0*2)", 2, 200, detail);
+  testOrd("00111010", "w^(e_0+2)", 2, 230, detail);
+  testOrd("00111020", "w^(e_0+w)", 2, 400, detail);
+  testOrd("00111021", "w^(e_0*2)", 2, 200, detail);
+  testOrd("0011102120", "w^((e_0)w)", 2, 200, detail);
+  testOrd("001110212031", "w^(w^(e_0*2))", 2, 200, detail);
   testOrd("001111", "e_1", 2, 200, detail);
-  testOrd("001111102121203131", "w^w^w^(e_1*2)", 2, 200, detail);
+  testOrd("001111102121203131", "w^(w^(e_1*2))", 2, 200, detail);
   testOrd("0011111111", "e_3", 2, 200, detail);
   testOrd("001120", "e_w", 2, 200, detail);
-  testOrd("001120102121", "w^w^(e_w+e_1)", 2, 200, detail);
-  testOrd("001120102130203140", "w^w^w^(e_w*2)", 2, 200, detail);
+  testOrd("001120102121", "w^(e_w+e_1)", 2, 200, detail);
+  testOrd("001120102130203140", "w^(w^(e_w*2))", 2, 200, detail);
   testOrd("00112011", "e_(w+1)", 2, 200, detail);
   testOrd("00112020", "e_(w^2)", 2, 200, detail);
   testOrd("00112030", "e_(w^w)", 2, 200, detail);
@@ -2000,11 +2005,11 @@ void testAll(int detail) {
   testOrd("00112031112031112031", "e_(e_0+e_0+e_0)", 2, 200, detail);
   testOrd("0011203120", "e_((e_0)w)", 2, 200, detail);
   testOrd("00112031201111", "e_((e_0)w+2)", 2, 200, detail);
-  testOrd("001120312020", "e_(w^((e_0)2))", 2, 200, detail);
-  testOrd("001120312030", "e_(w^((e_0)w))", 2, 200, detail);
-  testOrd("001120312031", "e_(w^w^(e_0*2))", 2, 200, detail);
-  testOrd("0011203130", "e_(w^((e_0)((e_0)w)))", 2, 200, detail);
-  testOrd("001120313041", "e_(w^w^w^(e_0*2))", 2, 200, detail);
+  testOrd("001120312020", "e_(w^(e_0+2))", 2, 200, detail);
+  testOrd("001120312030", "e_(w^(e_0+w))", 2, 200, detail);
+  testOrd("001120312031", "e_(w^(e_0*2))", 2, 200, detail);
+  testOrd("0011203130", "e_(w^((e_0)w))", 2, 200, detail);
+  testOrd("001120313041", "e_(w^(w^(e_0*2)))", 2, 200, detail);
   testOrd("0011203131", "e_(e_1)", 2, 200, detail);
   testOrd("001120313131", "e_(e_2)", 2, 200, detail);
   testOrd("0011203140", "e_(e_w)", 2, 200, detail);
@@ -2014,7 +2019,7 @@ void testAll(int detail) {
   testOrd("00112031405120", "e_(e_(e_0)+1)", 2, 200, detail);
   testOrd("00112031405130", "e_((e_(e_0))w)", 2, 200, detail);
   testOrd("00112031405140", "e_(e_((e_0)w))", 2, 200, detail);
-  testOrd("00112031405150", "e_(e_(w^((e_0)((e_0)w))))", 2, 200, detail);
+  testOrd("00112031405150", "e_(e_(w^((e_0)w)))", 2, 200, detail);
   testOrd("00112031405160", "e_(e_(e_w))", 2, 200, detail);
   testOrd("0011203140516060", "e_(e_(e_(w^2)))", 2, 200, detail);
   testOrd("0011203140516070", "e_(e_(e_(w^w)))", 2, 200, detail);
@@ -2026,7 +2031,7 @@ void testAll(int detail) {
   testOrd("001122", "p0(p1(p2(0)))", 2, 200, detail);
   testOrd("00112200", "p0(p1(p2(0)))+1", 2, 200, detail);
   testOrd("00112210", "(p0(p1(p2(0))))w", 2, 200, detail);
-  testOrd("001122102132", "w^w^(p0(p1(p2(0)))*2)", 2, 200, detail);
+  testOrd("001122102132", "w^(p0(p1(p2(0)))*2)", 2, 200, detail);
   testOrd("00112211", "p0(p1(p2(0))+p1(0))", 2, 200, detail);
   testOrd("00112220", "p0(p1(p2(0)+p0(0)))", 2, 200, detail);
   testOrd("00112221", "p0(p1(p2(0)+p1(0)))", 2, 200, detail);
@@ -2036,12 +2041,12 @@ void testAll(int detail) {
   testOrd("00112232", "p0(p1(p2(p2(0))))", 2, 200, detail);
   testOrd("00112233", "p0(p1(p2(p3(0))))", 2, 200, detail);
   testOrd("000111100000000", "(p0(pw(0)))w+2", 3, 200, detail);
-  testOrd("000111100211200311", "w^w^w^(p0(pw(0))*2)", 3, 200, detail);
+  testOrd("000111100211200311", "w^(w^(p0(pw(0))*2))", 3, 200, detail);
   testOrd("000111222", "(0,0,0)(1,1,1)(2,2,2)", 3, 200, detail);
   testOrd("000111222", "(0,0,0)(1,1,1)(2,2,2)", 3, 230, detail);
   testOrd("000111222", "(0,0,0)(1,1,1)(2,2,2)", 3, 310, detail);
   testOrd("000111222", "(0,0,0)(1,1,1)(2,2,2)", 3, 320, detail);
-  testOrd("0000111110002111", "w^w^((0,0,0,0)(1,1,1,1)*2)", 4, 200, detail);
+  testOrd("0000111110002111", "w^((0,0,0,0)(1,1,1,1)*2)", 4, 200, detail);
 
   printf("Test completed without error.\n");
   return;
