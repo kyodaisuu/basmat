@@ -119,6 +119,7 @@ my $ver23 = '';
 my $ver3  = '';
 my $ver31 = '';
 my $ver32 = '';
+my $ver33 = '';
 my $ver4 = '';
 if ( $ver == 1 ) {
     $ver  = 1;
@@ -151,6 +152,10 @@ elsif ( $ver == 3.1 ) {
 elsif ( $ver == 3.2 ) {
     $ver   = 3.2;
     $ver32 = 'selected';
+}
+elsif ( $ver == 3.3 ) {
+    $ver   = 3.3;
+    $ver33 = 'selected';
 }
 elsif ( $ver == 4 ) {
     $ver   = 4;
@@ -204,6 +209,7 @@ print "<option value=\"2.3\" $ver22>Version 2.3 (koteitan)";
 print "<option value=\"3\" $ver3>Version 3";
 print "<option value=\"3.1\" $ver31>Version 3.1 (Nish)\n";
 print "<option value=\"3.2\" $ver32>Version 3.2 (Nish)\n";
+print "<option value=\"3.3\" $ver33>Version 3.3 (rpakr, Ec1ipsed)\n";
 print "<option value=\"4\" $ver4>Version 4\n";
 print "</select>";
 

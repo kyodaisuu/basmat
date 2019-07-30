@@ -40,7 +40,7 @@ void showHelp() {
       "  ver  Version of Bashicu matrix system. Default = %s.\n",
       versionBM);
   printf(
-      "       Available versions: 1, 2, 2.1, 2.2, 2.3, 3, 3.1, 3.2, 4, 3.3\n"
+      "       Available versions: 1, 2, 2.1, 2.2, 2.3, 3, 3.1, 3.2, 3.3, 4\n"
       "  opt  Calculation option.\n"
       "       opt = 1: n is constant. (Default)\n"
       "       opt = 2: n = n+1 for each loop.\n"
@@ -1306,7 +1306,7 @@ char *getOrd(int *S, long nc, int nr, int ver, int form) {
     return "e";
   }
 
-  /* Analysis above pair sequence is only for BM2, 2.3, 3.1, 3.2 */
+  /* Analysis above pair sequence is only for BM2, 2.3, 3.1, 3.2, 3.3 */
 
   if (ver != 200 && ver != 230 && ver != 310 && ver != 320 && ver != 330) {
     ordinal = getSeq(S, nr, nc);
