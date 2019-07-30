@@ -209,7 +209,7 @@ print "<option value=\"2.3\" $ver22>Version 2.3 (koteitan)";
 print "<option value=\"3\" $ver3>Version 3";
 print "<option value=\"3.1\" $ver31>Version 3.1 (Nish)\n";
 print "<option value=\"3.2\" $ver32>Version 3.2 (Nish)\n";
-print "<option value=\"3.3\" $ver33>Version 3.3 (rpakr, Ec1ipsed)\n";
+print "<option value=\"3.3\" $ver33>Version 3.3 (rpakr, Ecl1psed)\n";
 print "<option value=\"4\" $ver4>Version 4\n";
 print "</select>";
 
