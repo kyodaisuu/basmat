@@ -538,7 +538,7 @@ int getBadSequence(int *S, int *Delta, int *C, int ver, int detail, long n,
       /* clear C */
       for (m = 0; m <= row; m++){
         for (k = 0; k < bad; k++){
-          C[m+n*nr] = 0;
+          C[m+(k+1)*nr] = 0;
         }
       }
       /* search lower most non-zero -> l */
