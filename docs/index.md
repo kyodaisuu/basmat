@@ -23,7 +23,7 @@ See [Installation](install.md).
     * n: natural number. n=2 if not given.
     * ex. "(0,0)(1,1)[3]"   (Quote to escape brackets in shell)
 * ver - Version of Bashicu matrix system. Default = 4.
-    * Available versions: 1, 2, 2.1, 2.2, 2.3, 3, 3.1, 3.2, 4
+    * Available versions: 1, 2, 2.1, 2.2, 2.3, 3, 3.1, 3.2, 3.3, 4
     * See [basmat version](https://googology.wikia.com/wiki/User:Kyodaisuu/BasmatVersion) for detail
 * opt - Calculation option.
     * opt = 1: n is constant. (Default)
@@ -62,3 +62,5 @@ The online version of basmat has some limit on the length of initial variable, t
 * [Fish](http://googology.wikia.com/wiki/User:Kyodaisuu) wrote this C program using Bashicu's algorithm
 * [koteitan](https://twitter.com/koteitan) invented 2.1, 2.2 and 2.3 and wrote C program of versions 2.1, 2.2, 2.3, 3.1 and 3.2
 * [Nish](https://googology.wikia.com/wiki/User:Alemagno12) invented version 3.1 and 3.2
+* [rpakr](https://googology.wikia.com/wiki/User:Rpakr) invented version 3.3
+* [Ecl1psed](https://googology.wikia.com/wiki/User:Ecl1psed276) invented version 3.3
