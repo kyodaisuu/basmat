@@ -38,6 +38,8 @@ where all elements are nonnegative integers. The matrix can be written in the fo
 </tr><tr>
 <td>Version 3.2 (BM3.2)<td>B <td>Nish <td>2018
 </tr><tr>
+<td>Version 3.3 (BM3.3)<td>B <td>rpakr, Ecl1psed <td>2019
+</tr><tr>
 <td>Version 4 (BM4)<td>B <td>Bashicu <td>2018
 </tr>
 </table>
