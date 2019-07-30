@@ -534,23 +534,47 @@ int getBadSequence(int *S, int *Delta, int *C, int ver, int detail, long n,
         }
       }
       /* Calculate C matrix */
-      for (j = 0; j < nr; j++) {
-        for (k = 0; k < bad; k++) {
-          p = k;
-          while (1) {
-            if (p == 0) { /* p reached the bad root */
-              C[j + (k + 1) * nr] = 1;
-              break;
-            } else if (p < 0) { /* p lost the bad root */
-              C[j + (k + 1) * nr] = 0;
-              break;
-            } else { /* p have not reach the bad root */
-              p = getParentIB(S, j, p + n - bad, nr) -
-                  (n - bad); /* find next parent */
-            }
-          } /* while find parent */
-        }   /* for k */
-      }     /* for j */
+
+      /* clear C */
+      for (m = 0; m <= row; m++){
+        for (k = 0; k < bad; k++){
+          C[m+n*nr] = 0;
+        }
+      }
+      /* search lower most non-zero -> l */
+      for (m = 0; m < row-1; m++){
+        if(S[ m + n * nr] != 0) l = m; 
+      }
+      /* check C=1 for ancestors of l th row */
+      C[l + 0 + 1 * nr] = 1; /* set C=1 for BR */
+      for (k = bad; k >= 0; k--) {
+        p = getParentIB(S, l, n - k, nr);
+        if(p >= 0 && C[l + (p - (n - bad) + 1) * nr] == 1){
+          /* propagate C=1 to decendants */
+          C[l + (bad - k + 1) * nr] = 1;
+        }
+      } /* for k */
+
+      /*propagate 1 to upper rows */
+      for (k = 0; k < bad; k++) {
+        if(C[l + (bad - k + 1) * nr] == 1){
+          for (m = 0; m <= l; m++) {
+            C[l + (bad - k + 1) * nr] = 1;
+          }
+        }
+      }
+
+      /* check parent  */
+      for (m = 0; m < l; m++) {
+        for (k = bad; k >= 0; k--) {
+          p = getParentIB(S, m, k + n - bad, nr);
+          if(p > n - bad 
+            && C[m + (p - (n - bad) + 1) * nr] == 1){
+            C[m + (k + 1) * nr] = 1;
+            break;
+          }
+        }
+      }
     } else if (ver == 310) {
       /***** Version 3.1 by Nish *****/
       /* Clear Delta */
@@ -1664,6 +1688,7 @@ void testOrd(char *bm, char *expected, int nr, int ver, int detail) {
 */
 
 void testCmpseq(char *bm, char *bm2, int expected, int nr, int ver) {
+  printf("<%s>",bm);
   testStd(bm, 0, nr, ver);
   testStd(bm2, 0, nr, ver);
   int S[100], S2[100], i, len;
@@ -1744,7 +1769,6 @@ void testAll(int detail) {
           2, 1);
   testOne("00112230213141", "0011223021314051627061718091102110101111", 2, 330,
           2, 1);
-
   /* (0,0,0)(1,1,1)(2,0,0)(1,1,0)(2,1,0)(3,1,0)[1]
      infinite loop of BM1 by hyp cos */
   testOne("000111200110210310", "000111200110210300210310", 3, 100, 1, 1);
