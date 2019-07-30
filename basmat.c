@@ -1275,7 +1275,7 @@ char *getOrd(int *S, long nc, int nr, int ver, int form) {
     return "e";
   }
 
-  /* Analysis above pair sequence is only for BM2, 2.3, 3.1, 3.2, 3.3 */
+  /* Analysis above pair sequence is only for BM2, 2.3, 3.1, 3.2, 3.3, 4.0 */
 
   if (ver != 200 && ver != 230 && ver != 310 && ver != 320 && ver != 330 && ver != 400) {
     ordinal = getSeq(S, nr, nc);
