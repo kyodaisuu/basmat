@@ -8,8 +8,8 @@ REM (1) Dim infinity was changed to finite values
 REM (2) [] was changed to () for index variables
 REM (3) "&" to "and"
 REM (4) "|" to "or"
-REM (5) L.24: pow(A,A) was changed to A^A
-REM (6) L.44, 68, 75, 87: endif added. elae in L.57 was changed to else.
+REM (5) L.25: pow(A,A) was changed to A^A
+REM (6) L.45, 69, 76, 88: endif added.
 REM (7) Character of space was replaced
 REM Note that this program stops with index out of range error
 REM due to the revision (1).
