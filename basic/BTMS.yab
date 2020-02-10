@@ -1,6 +1,6 @@
 REM Bashicu Triangular Matrix
 REM Made by Bashicu
-REM 00:44, February 9, 2020‎ (UTC+0900)'s version of Bashicu triangular matrix number in this page
+REM 10:34, February 10, 2020‎ (UTC+0900)'s version of Bashicu triangular matrix number in this page
 REM https://googology.wikia.org/ja/wiki/%E3%83%A6%E3%83%BC%E3%82%B6%E3%83%BC%E3%83%96%E3%83%AD%E3%82%B0:BashicuHyudora/BASIC%E8%A8%80%E8%AA%9E%E3%81%AB%E3%82%88%E3%82%8B%E5%B7%A8%E5%A4%A7%E6%95%B0%E3%81%AE%E3%81%BE%E3%81%A8%E3%82%81
 
 REM Revisions to translate for yabasic
@@ -9,7 +9,7 @@ REM (2) [] was changed to () for index variables
 REM (3) "&" to "and"
 REM (4) "|" to "or"
 REM (5) L.25: pow(A,A) was changed to A^A
-REM (6) L.45, 69, 76, 88: endif added.
+REM (6) L.34, 45, 69, 76, 88: endif added.
 REM (7) Character of space was replaced
 REM Note that this program stops with index out of range error
 REM due to the revision (1).
@@ -31,7 +31,7 @@ for D=0 to 99
        if D7<D4 then
         C(D7)=B(D3,D7)-B(D3-D6,D7)
        else
-        if D8=0 then D8=D6
+        if D8=0 then D8=D6 endif
          D9=D9+1
          for D10=1 to D4
           B1(D3-D6,D10)=D9
@@ -74,7 +74,6 @@ for D=0 to 99
           next
          next
          if D20=0 then D19=D6 else D20=0 endif
-        endif
        endif
       else
        D7=D4
