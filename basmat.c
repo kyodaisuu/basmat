@@ -94,12 +94,13 @@ int intVersion(char *version) {
      bm = Bashicu matrix as input string
      S  = Just allocate memory
      nr = numbers of rows
+     ncmax = available number of columns
    Return variables:
      S  = Bashicu matrix as array of integer
      nc = numbers of columns
      num = Integer as a parameter of BM */
 
-void getMatrix(char *bm, int *S, int nr, long *nc, long *num) {
+void getMatrix(char *bm, int *S, int nr, int ncmax, long *nc, long *num) {
   int len, i, j, m;
   long k;
 
@@ -107,7 +108,15 @@ void getMatrix(char *bm, int *S, int nr, long *nc, long *num) {
   i = j = S[0] = 0;
   for (m = 0; m < len; m++) {
     if (bm[m] == ',') i++, S[i + j * nr] = 0;
-    if (bm[m] == ')') j++, i = 0, S[i + j * nr] = 0;
+    if (bm[m] == ')') {
+      if (j == ncmax) {
+        *nc = j;
+        printf("The number of column exceeds seq=%d.\n",ncmax);
+        printf("The matrix is trimmed.\n");
+        return;
+      }
+      j++, i = 0, S[i + j * nr] = 0;
+    }
     if (bm[m] == '[') {
       for (; m < len; m++) {
         k = bm[m] - '0';
@@ -2152,7 +2161,7 @@ int main(int argc, char *argv[]) {
   }
 
   /* Read Bashicu Matrix */
-  getMatrix(bm, S, nr, &nc, &num);
+  getMatrix(bm, S, nr, s, &nc, &num);
   n = nc - 1;
 
   if (num < 1) num = 2;
