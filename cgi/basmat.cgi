@@ -66,7 +66,7 @@ my $detail = $formdata{'detail'};
 my $escaped;
 
 # Sequence to be calculated $ini is formatted by calling basmat
-my $ini1 = `$basmat -t 1 \"$ini\" | grep -v "Not" | head -n 1`;
+my $ini1 = `$basmat -t 1 \"$ini\" | grep -v "Not" | grep -v "exceeds" | grep -v "trimmed" | head -n 1`;
 chomp($ini1);
 if ( length( uri_escape($ini1) ) < 256 && substr( $ini1, 0, 1 ) == "(" ) {
     $ini = $ini1;
