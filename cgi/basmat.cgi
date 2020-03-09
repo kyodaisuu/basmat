@@ -2,7 +2,7 @@
 #
 # Web interface of Bashicu Matrix Calculator
 #
-#   http://gyafun.jp/ln/basmat.cgi
+#   https://gyafun.jp/ln/basmat.cgi
 #
 #   Project website
 #   https://kyodaisuu.github.io/basmat/
@@ -15,7 +15,7 @@ use strict;
 # Title of the website
 my $title    = "Bashicu Matrix Calculator";
 # URL of the BM calculator
-my $url      = "http://gyafun.jp/ln/basmat.cgi";
+my $url      = "https://gyafun.jp/ln/basmat.cgi";
 # Location of basmat
 my $basmat = "basmat/basmat";
 # Location of help file to be displayed when no input is given
