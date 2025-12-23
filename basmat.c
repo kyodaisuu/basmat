@@ -699,7 +699,7 @@ int getBadSequence(int *S, int *Delta, int *C, int ver, int detail, long n,
       for (k = 0; k <= n; k++) {     /* k = pivot column */
         for (l = 0; l <= row; l++) { /* l = row */
           if (S[l + (n - k) * nr] < S[l + n * nr] - Delta[l]) {
-            if (S[l + 1 + n * nr] == 0 || l == row) {
+            if (l == row || (l < row && S[l + 1 + n * nr] == 0)) {
               l = row;
               bad = k;
               k = n;
